@@ -1,4 +1,4 @@
-module Logic.Internal exposing (indexedFoldlArray, update)
+module Ecs.Internal exposing (indexedFoldlArray, update)
 
 import Array exposing (Array)
 

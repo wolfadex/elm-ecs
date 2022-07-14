@@ -1,4 +1,4 @@
-module Logic.System exposing
+module Ecs.System exposing
     ( System
     , update, step, step2, step3, step4, step5
     , foldl, foldl2, foldl3, foldl4, foldl5
@@ -28,14 +28,14 @@ module Logic.System exposing
 -}
 
 import Array
-import Logic.Component as Component
-import Logic.Entity exposing (EntityId)
-import Logic.Internal exposing (indexedFoldlArray)
+import Ecs.Component
+import Ecs.Entity exposing (EntityId)
+import Ecs.Internal
 
 
-{-| Update whole `Component.Set`
+{-| Update whole `Ecs.Component.Set`
 -}
-update : Component.Spec comp world -> (Component.Set comp -> Component.Set comp) -> System world
+update : Ecs.Component.Spec comp world -> (Ecs.Component.Set comp -> Ecs.Component.Set comp) -> System world
 update spec f world =
     spec.set (f (spec.get world)) world
 
@@ -46,7 +46,7 @@ type alias System world =
     world -> world
 
 
-{-| Reduce a `Component.Set` from the left.
+{-| Reduce a `Ecs.Component.Set` from the left.
 
 Example count how much enemies left in the world:
 
@@ -57,7 +57,7 @@ Example count how much enemies left in the world:
         foldl (\_ -> (+) 1) enemySet 0
 
 -}
-foldl : (comp1 -> acc -> acc) -> Component.Set comp1 -> acc -> acc
+foldl : (comp1 -> acc -> acc) -> Ecs.Component.Set comp1 -> acc -> acc
 foldl f comp1 acc_ =
     Array.foldl
         (\value acc ->
@@ -72,9 +72,9 @@ foldl f comp1 acc_ =
 `indexedFoldl` is to `foldl` as `List.indexedMap` is to `List.map`.
 
 -}
-indexedFoldl : (EntityId -> comp1 -> acc -> acc) -> Component.Set comp1 -> acc -> acc
+indexedFoldl : (EntityId -> comp1 -> acc -> acc) -> Ecs.Component.Set comp1 -> acc -> acc
 indexedFoldl f comp1 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\i value acc ->
             value |> Maybe.map (\a -> f i a acc) |> Maybe.withDefault acc
         )
@@ -82,15 +82,15 @@ indexedFoldl f comp1 acc_ =
         comp1
 
 
-{-| Step over all entities that have both components and reduce an `Component.Set`s from the left.
+{-| Step over all entities that have both components and reduce an `Ecs.Component.Set`s from the left.
 -}
-foldl2 : (comp1 -> comp2 -> acc -> acc) -> Component.Set comp1 -> Component.Set comp2 -> acc -> acc
+foldl2 : (comp1 -> comp2 -> acc -> acc) -> Ecs.Component.Set comp1 -> Ecs.Component.Set comp2 -> acc -> acc
 foldl2 f comp1 comp2 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\n value acc ->
             Maybe.map2 (\a b -> f a b acc)
                 value
-                (Component.get n comp2)
+                (Ecs.Component.get n comp2)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -99,13 +99,13 @@ foldl2 f comp1 comp2 acc_ =
 
 {-| Same as [`indexedFoldl`](#indexedFoldl) only with 2 components
 -}
-indexedFoldl2 : (EntityId -> comp1 -> comp2 -> acc -> acc) -> Component.Set comp1 -> Component.Set comp2 -> acc -> acc
+indexedFoldl2 : (EntityId -> comp1 -> comp2 -> acc -> acc) -> Ecs.Component.Set comp1 -> Ecs.Component.Set comp2 -> acc -> acc
 indexedFoldl2 f comp1 comp2 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\n value acc ->
             Maybe.map2 (\a b -> f n a b acc)
                 value
-                (Component.get n comp2)
+                (Ecs.Component.get n comp2)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -114,14 +114,14 @@ indexedFoldl2 f comp1 comp2 acc_ =
 
 {-| Same as [`foldl2`](#foldl2) only with 3 components
 -}
-foldl3 : (comp1 -> comp2 -> comp3 -> acc -> acc) -> Component.Set comp1 -> Component.Set comp2 -> Component.Set comp3 -> acc -> acc
+foldl3 : (comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component.Set comp1 -> Ecs.Component.Set comp2 -> Ecs.Component.Set comp3 -> acc -> acc
 foldl3 f comp1 comp2 comp3 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\n value acc ->
             Maybe.map3 (\a b c -> f a b c acc)
                 value
-                (Component.get n comp2)
-                (Component.get n comp3)
+                (Ecs.Component.get n comp2)
+                (Ecs.Component.get n comp3)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -130,14 +130,14 @@ foldl3 f comp1 comp2 comp3 acc_ =
 
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 3 components
 -}
-indexedFoldl3 : (EntityId -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Component.Set comp1 -> Component.Set comp2 -> Component.Set comp3 -> acc -> acc
+indexedFoldl3 : (EntityId -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component.Set comp1 -> Ecs.Component.Set comp2 -> Ecs.Component.Set comp3 -> acc -> acc
 indexedFoldl3 f comp1 comp2 comp3 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\n value acc ->
             Maybe.map3 (\a b c -> f n a b c acc)
                 value
-                (Component.get n comp2)
-                (Component.get n comp3)
+                (Ecs.Component.get n comp2)
+                (Ecs.Component.get n comp3)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -148,20 +148,20 @@ indexedFoldl3 f comp1 comp2 comp3 acc_ =
 -}
 foldl4 :
     (comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
-    -> Component.Set comp1
-    -> Component.Set comp2
-    -> Component.Set comp3
-    -> Component.Set comp4
+    -> Ecs.Component.Set comp1
+    -> Ecs.Component.Set comp2
+    -> Ecs.Component.Set comp3
+    -> Ecs.Component.Set comp4
     -> acc
     -> acc
 foldl4 f comp1 comp2 comp3 comp4 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\n value acc ->
             Maybe.map4 (\a b c d -> f a b c d acc)
                 value
-                (Component.get n comp2)
-                (Component.get n comp3)
-                (Component.get n comp4)
+                (Ecs.Component.get n comp2)
+                (Ecs.Component.get n comp3)
+                (Ecs.Component.get n comp4)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -172,20 +172,20 @@ foldl4 f comp1 comp2 comp3 comp4 acc_ =
 -}
 indexedFoldl4 :
     (EntityId -> comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
-    -> Component.Set comp1
-    -> Component.Set comp2
-    -> Component.Set comp3
-    -> Component.Set comp4
+    -> Ecs.Component.Set comp1
+    -> Ecs.Component.Set comp2
+    -> Ecs.Component.Set comp3
+    -> Ecs.Component.Set comp4
     -> acc
     -> acc
 indexedFoldl4 f comp1 comp2 comp3 comp4 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\n value acc ->
             Maybe.map4 (\a b c d -> f n a b c d acc)
                 value
-                (Component.get n comp2)
-                (Component.get n comp3)
-                (Component.get n comp4)
+                (Ecs.Component.get n comp2)
+                (Ecs.Component.get n comp3)
+                (Ecs.Component.get n comp4)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -196,20 +196,20 @@ indexedFoldl4 f comp1 comp2 comp3 comp4 acc_ =
 -}
 foldl5 :
     (comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
-    -> Component.Set comp1
-    -> Component.Set comp2
-    -> Component.Set comp3
-    -> Component.Set comp4
+    -> Ecs.Component.Set comp1
+    -> Ecs.Component.Set comp2
+    -> Ecs.Component.Set comp3
+    -> Ecs.Component.Set comp4
     -> acc
     -> acc
 foldl5 f comp1 comp2 comp3 comp4 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\n value acc ->
             Maybe.map4 (\a b c d -> f a b c d acc)
                 value
-                (Component.get n comp2)
-                (Component.get n comp3)
-                (Component.get n comp4)
+                (Ecs.Component.get n comp2)
+                (Ecs.Component.get n comp3)
+                (Ecs.Component.get n comp4)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -220,35 +220,35 @@ foldl5 f comp1 comp2 comp3 comp4 acc_ =
 -}
 indexedFoldl5 :
     (EntityId -> comp1 -> comp2 -> comp3 -> comp4 -> comp5 -> acc -> acc)
-    -> Component.Set comp1
-    -> Component.Set comp2
-    -> Component.Set comp3
-    -> Component.Set comp4
-    -> Component.Set comp5
+    -> Ecs.Component.Set comp1
+    -> Ecs.Component.Set comp2
+    -> Ecs.Component.Set comp3
+    -> Ecs.Component.Set comp4
+    -> Ecs.Component.Set comp5
     -> acc
     -> acc
 indexedFoldl5 f comp1 comp2 comp3 comp4 comp5 acc_ =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\n value acc ->
             Maybe.map5 (\a b c d e -> f n a b c d e acc)
                 value
-                (Component.get n comp2)
-                (Component.get n comp3)
-                (Component.get n comp4)
-                (Component.get n comp5)
+                (Ecs.Component.get n comp2)
+                (Ecs.Component.get n comp3)
+                (Ecs.Component.get n comp4)
+                (Ecs.Component.get n comp5)
                 |> Maybe.withDefault acc
         )
         acc_
         comp1
 
 
-{-| Single component mapping, Same as`List.map` - only for `Component.Set` inside `World`
+{-| Single component mapping, Same as`List.map` - only for `Ecs.Component.Set` inside `World`
 
     gravitySystem =
         Logic.System.step (Vec2.add gravity) accelerationSpec
 
 -}
-step : (comp -> comp) -> Component.Spec comp world -> System world
+step : (comp -> comp) -> Ecs.Component.Spec comp world -> System world
 step f { get, set } world =
     set (get world |> Array.map (Maybe.map f)) world
 
@@ -256,8 +256,8 @@ step f { get, set } world =
 {-| Helper for [`step2`](#step2)
 -}
 type alias Acc2 a b =
-    { a : Component.Set a
-    , b : Component.Set b
+    { a : Ecs.Component.Set a
+    , b : Ecs.Component.Set b
     }
 
 
@@ -277,8 +277,8 @@ step2 :
      -> ( b, b -> System (Acc2 a b) )
      -> System (Acc2 a b)
     )
-    -> Component.Spec a world
-    -> Component.Spec b world
+    -> Ecs.Component.Spec a world
+    -> Ecs.Component.Spec b world
     -> System world
 step2 f spec1 spec2 world =
     let
@@ -290,17 +290,17 @@ step2 f spec1 spec2 world =
         set2 i b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
-        combined : { a : Component.Set a, b : Component.Set b }
+        combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b }
         combined =
             { a = spec1.get world, b = spec2.get world }
 
         result : Acc2 a b
         result =
-            indexedFoldlArray
+            Ecs.Internal.indexedFoldlArray
                 (\n value acc ->
                     Maybe.map2 (\a b -> f ( a, set1 n ) ( b, set2 n ) acc)
                         value
-                        (Component.get n acc.b)
+                        (Ecs.Component.get n acc.b)
                         |> Maybe.withDefault acc
                 )
                 combined
@@ -314,9 +314,9 @@ step2 f spec1 spec2 world =
 {-| Helper for [`step3`](#step3)
 -}
 type alias Acc3 a b c =
-    { a : Component.Set a
-    , b : Component.Set b
-    , c : Component.Set c
+    { a : Ecs.Component.Set a
+    , b : Ecs.Component.Set b
+    , c : Ecs.Component.Set c
     }
 
 
@@ -328,9 +328,9 @@ step3 :
      -> ( c, c -> System (Acc3 a b c) )
      -> System (Acc3 a b c)
     )
-    -> Component.Spec a world
-    -> Component.Spec b world
-    -> Component.Spec c world
+    -> Ecs.Component.Spec a world
+    -> Ecs.Component.Spec b world
+    -> Ecs.Component.Spec c world
     -> System world
 step3 f spec1 spec2 spec3 world =
     let
@@ -346,19 +346,19 @@ step3 f spec1 spec2 spec3 world =
         set3 i c acc =
             { acc | c = Array.set i (Just c) acc.c }
 
-        combined : { a : Component.Set a, b : Component.Set b, c : Component.Set c }
+        combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c }
         combined =
             { a = spec1.get world, b = spec2.get world, c = spec3.get world }
 
         result : Acc3 a b c
         result =
-            indexedFoldlArray
+            Ecs.Internal.indexedFoldlArray
                 (\n value acc ->
                     Maybe.map3
                         (\a b c -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) acc)
                         value
-                        (Component.get n acc.b)
-                        (Component.get n acc.c)
+                        (Ecs.Component.get n acc.b)
+                        (Ecs.Component.get n acc.c)
                         |> Maybe.withDefault acc
                 )
                 combined
@@ -373,10 +373,10 @@ step3 f spec1 spec2 spec3 world =
 {-| Helper for [`step4`](#step4)
 -}
 type alias Acc4 a b c d =
-    { a : Component.Set a
-    , b : Component.Set b
-    , c : Component.Set c
-    , d : Component.Set d
+    { a : Ecs.Component.Set a
+    , b : Ecs.Component.Set b
+    , c : Ecs.Component.Set c
+    , d : Ecs.Component.Set d
     }
 
 
@@ -389,10 +389,10 @@ step4 :
      -> ( d, d -> System (Acc4 a b c d) )
      -> System (Acc4 a b c d)
     )
-    -> Component.Spec a world
-    -> Component.Spec b world
-    -> Component.Spec c world
-    -> Component.Spec d world
+    -> Ecs.Component.Spec a world
+    -> Ecs.Component.Spec b world
+    -> Ecs.Component.Spec c world
+    -> Ecs.Component.Spec d world
     -> System world
 step4 f spec1 spec2 spec3 spec4 world =
     let
@@ -412,7 +412,7 @@ step4 f spec1 spec2 spec3 spec4 world =
         set4 i d acc =
             { acc | d = Array.set i (Just d) acc.d }
 
-        combined : { a : Component.Set a, b : Component.Set b, c : Component.Set c, d : Component.Set d }
+        combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c, d : Ecs.Component.Set d }
         combined =
             { a = spec1.get world
             , b = spec2.get world
@@ -422,14 +422,14 @@ step4 f spec1 spec2 spec3 spec4 world =
 
         result : Acc4 a b c d
         result =
-            indexedFoldlArray
+            Ecs.Internal.indexedFoldlArray
                 (\n value acc ->
                     Maybe.map4
                         (\a b c d -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) ( d, set4 n ) acc)
                         value
-                        (Component.get n acc.b)
-                        (Component.get n acc.c)
-                        (Component.get n acc.d)
+                        (Ecs.Component.get n acc.b)
+                        (Ecs.Component.get n acc.c)
+                        (Ecs.Component.get n acc.d)
                         |> Maybe.withDefault acc
                 )
                 combined
@@ -445,11 +445,11 @@ step4 f spec1 spec2 spec3 spec4 world =
 {-| Helper for [`step5`](#step5)
 -}
 type alias Acc5 a b c d e =
-    { a : Component.Set a
-    , b : Component.Set b
-    , c : Component.Set c
-    , d : Component.Set d
-    , e : Component.Set e
+    { a : Ecs.Component.Set a
+    , b : Ecs.Component.Set b
+    , c : Ecs.Component.Set c
+    , d : Ecs.Component.Set d
+    , e : Ecs.Component.Set e
     }
 
 
@@ -463,11 +463,11 @@ step5 :
      -> ( e, e -> System (Acc5 a b c d e) )
      -> System (Acc5 a b c d e)
     )
-    -> Component.Spec a world
-    -> Component.Spec b world
-    -> Component.Spec c world
-    -> Component.Spec d world
-    -> Component.Spec e world
+    -> Ecs.Component.Spec a world
+    -> Ecs.Component.Spec b world
+    -> Ecs.Component.Spec c world
+    -> Ecs.Component.Spec d world
+    -> Ecs.Component.Spec e world
     -> System world
 step5 f spec1 spec2 spec3 spec4 spec5 world =
     let
@@ -491,7 +491,7 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
         set5 i e acc =
             { acc | e = Array.set i (Just e) acc.e }
 
-        combined : { a : Component.Set a, b : Component.Set b, c : Component.Set c, d : Component.Set d, e : Component.Set e }
+        combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c, d : Ecs.Component.Set d, e : Ecs.Component.Set e }
         combined =
             { a = spec1.get world
             , b = spec2.get world
@@ -502,15 +502,15 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
 
         result : Acc5 a b c d e
         result =
-            indexedFoldlArray
+            Ecs.Internal.indexedFoldlArray
                 (\n value acc ->
                     Maybe.map5
                         (\a b c d e -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) ( d, set4 n ) ( e, set5 n ) acc)
                         value
-                        (Component.get n acc.b)
-                        (Component.get n acc.c)
-                        (Component.get n acc.d)
-                        (Component.get n acc.e)
+                        (Ecs.Component.get n acc.b)
+                        (Ecs.Component.get n acc.c)
+                        (Ecs.Component.get n acc.d)
+                        (Ecs.Component.get n acc.e)
                         |> Maybe.withDefault acc
                 )
                 combined

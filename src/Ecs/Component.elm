@@ -1,4 +1,4 @@
-module Logic.Component exposing
+module Ecs.Component exposing
     ( Set, Spec, empty
     , set, spawn, remove
     , get, get2, update
@@ -12,16 +12,18 @@ module Logic.Component exposing
 
 Example:
 
+    import Ecs.Component
+
     type alias Velocity =
         { x : Float, y : Float }
 
-    spec : Component.Spec Velocity { world | v : Component.Set Velocity }
+    spec : Ecs.Component.Spec Velocity { world | v : Ecs.Component.Set Velocity }
     spec =
-        Component.Spec .v (\comps world -> { world | v = comps })
+        Ecs.Component.Spec .v (\comps world -> { world | v = comps })
 
-    empty : Component.Set Velocity
+    empty : Ecs.Component.Set Velocity
     empty =
-        Component.empty
+        Ecs.Component.empty
 
 @docs Set, Spec, empty
 
@@ -51,7 +53,7 @@ Example:
 
 import Array exposing (Array)
 import Dict exposing (Dict)
-import Logic.Internal exposing (indexedFoldlArray)
+import Ecs.Internal
 
 
 {-| Component storage, the main building block of the world
@@ -155,7 +157,7 @@ map f comps =
 -}
 update : EntityId -> (comp -> comp) -> Set comp -> Set comp
 update i f =
-    Logic.Internal.update i (Maybe.map f)
+    Ecs.Internal.update i (Maybe.map f)
 
 
 {-| Create a `Component.Set` from a `List`.
@@ -175,7 +177,7 @@ fromList =
 -}
 toList : Set a -> List ( EntityId, a )
 toList =
-    indexedFoldlArray (\i a acc -> Maybe.map (\a_ -> ( i, a_ ) :: acc) a |> Maybe.withDefault acc) []
+    Ecs.Internal.indexedFoldlArray (\i a acc -> Maybe.map (\a_ -> ( i, a_ ) :: acc) a |> Maybe.withDefault acc) []
 
 
 {-| Create a `Component.Set` from a dictionary.
@@ -195,7 +197,7 @@ fromDict =
 -}
 toDict : Set a -> Dict EntityId a
 toDict =
-    indexedFoldlArray
+    Ecs.Internal.indexedFoldlArray
         (\i a acc ->
             Maybe.map (\a_ -> Dict.insert i a_ acc) a
                 |> Maybe.withDefault acc
