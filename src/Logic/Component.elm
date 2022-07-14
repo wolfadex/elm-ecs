@@ -5,6 +5,7 @@ module Logic.Component exposing
     , map, filterMap
     , fromList, toList
     , fromDict, toDict
+    , EntityId
     )
 
 {-| **Component**: the raw data for one aspect of the object, and how it interacts with the world. "Labels the Entity as possessing this particular aspect".
@@ -41,6 +42,11 @@ Example:
 
 @docs fromDict, toDict
 
+
+# Todo
+
+@docs EntityId
+
 -}
 
 import Array exposing (Array)
@@ -54,7 +60,9 @@ type alias Set comp =
     Array (Maybe comp)
 
 
-type alias EntityID =
+{-| The ID of an entity
+-}
+type alias EntityId =
     Int
 
 
@@ -75,7 +83,7 @@ empty =
 
 {-| Remove component from `Component.Set` by `EntityID`, or return unchanged if component not in `Set`.
 -}
-remove : EntityID -> Set a -> Set a
+remove : EntityId -> Set a -> Set a
 remove entityID components =
     Array.set entityID Nothing components
 
@@ -87,7 +95,7 @@ remove entityID components =
         empty |> spawn 5 10 |> get 5
 
 -}
-spawn : EntityID -> a -> Set a -> Set a
+spawn : EntityId -> a -> Set a -> Set a
 spawn id value components =
     if id - Array.length components < 0 then
         Array.set id (Just value) components
@@ -104,21 +112,21 @@ spawn id value components =
         empty |> set 5 10 |> get 5
 
 -}
-set : EntityID -> a -> Set a -> Set a
+set : EntityId -> a -> Set a -> Set a
 set id value components =
     Array.set id (Just value) components
 
 
 {-| Get component for `EntityId`.
 -}
-get : EntityID -> Set comp -> Maybe comp
+get : EntityId -> Set comp -> Maybe comp
 get id =
     Array.get id >> Maybe.withDefault Nothing
 
 
 {-| Get components Tuple for `EntityId`.
 -}
-get2 : EntityID -> Set comp -> Set comp2 -> Maybe ( comp, comp2 )
+get2 : EntityId -> Set comp -> Set comp2 -> Maybe ( comp, comp2 )
 get2 id set1 set2 =
     Maybe.map2 Tuple.pair
         (get id set1)
@@ -145,7 +153,7 @@ map f comps =
 
 {-| Update Component by `EntityID`.
 -}
-update : EntityID -> (comp -> comp) -> Set comp -> Set comp
+update : EntityId -> (comp -> comp) -> Set comp -> Set comp
 update i f =
     Logic.Internal.update i (Maybe.map f)
 
@@ -155,7 +163,7 @@ update i f =
 **Note**: Useful for data serialization.
 
 -}
-fromList : List ( EntityID, a ) -> Set a
+fromList : List ( EntityId, a ) -> Set a
 fromList =
     List.foldl (\( index, value ) components -> spawn index value components) empty
 
@@ -165,7 +173,7 @@ fromList =
 **Note**: Useful for data deserialization.
 
 -}
-toList : Set a -> List ( EntityID, a )
+toList : Set a -> List ( EntityId, a )
 toList =
     indexedFoldlArray (\i a acc -> Maybe.map (\a_ -> ( i, a_ ) :: acc) a |> Maybe.withDefault acc) []
 
@@ -175,7 +183,7 @@ toList =
 **Note**: Useful for data serialization.
 
 -}
-fromDict : Dict EntityID a -> Set a
+fromDict : Dict EntityId a -> Set a
 fromDict =
     Dict.foldl (\index value components -> spawn index value components) empty
 
@@ -185,7 +193,7 @@ fromDict =
 **Note**: Useful for data deserialization.
 
 -}
-toDict : Set a -> Dict EntityID a
+toDict : Set a -> Dict EntityId a
 toDict =
     indexedFoldlArray
         (\i a acc ->

@@ -1,4 +1,4 @@
-module Logic.Entity exposing (EntityID, create, with, remove)
+module Logic.Entity exposing (EntityId, create, with, remove)
 
 {-| **Entity**: The entity is a general-purpose object. It only consists of a unique ID. They "tag every coarse game object as a separate item".
 Example:
@@ -7,7 +7,7 @@ Example:
         |> Entity.with ( positionSpec, positionComponent )
         |> Entity.with ( velocitySpec, velocityComponent )
 
-@docs EntityID, create, with, remove
+@docs EntityId, create, with, remove
 
 -}
 
@@ -15,8 +15,9 @@ import Array
 import Logic.Component as Component
 
 
-{-| -}
-type alias EntityID =
+{-| The ID of an entity
+-}
+type alias EntityId =
     Int
 
 
@@ -27,7 +28,7 @@ type alias EntityID =
         |> Entity.with ( velocitySpec, velocityComponent )
 
 -}
-create : EntityID -> world -> ( EntityID, world )
+create : EntityId -> world -> ( EntityId, world )
 create id world =
     ( id, world )
 
@@ -43,7 +44,7 @@ It also can be used to just disable (remove) some components from an entity.
         remove ( id, world )
 
 -}
-remove : Component.Spec comp world -> ( EntityID, world ) -> ( EntityID, world )
+remove : Component.Spec comp world -> ( EntityId, world ) -> ( EntityId, world )
 remove spec ( entityID, world ) =
     ( entityID, spec.set (Array.set entityID Nothing (spec.get world)) world )
 
@@ -55,13 +56,16 @@ remove spec ( entityID, world ) =
         |> Entity.with ( velocitySpec, velocityComponent )
 
 -}
-with : ( Component.Spec comp world, comp ) -> ( EntityID, world ) -> ( EntityID, world )
+with : ( Component.Spec comp world, comp ) -> ( EntityId, world ) -> ( EntityId, world )
 with ( spec, component ) ( entityID, world ) =
     let
+        updatedComponents : Component.Set comp
         updatedComponents =
-            spec.get world
-                |> Component.spawn entityID component
+            Component.spawn entityID
+                component
+                (spec.get world)
 
+        updatedWorld : world
         updatedWorld =
             spec.set updatedComponents world
     in

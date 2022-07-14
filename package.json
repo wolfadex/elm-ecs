@@ -1,0 +1,26 @@
+{
+  "name": "elm-ecs",
+  "version": "1.0.0",
+  "description": "An ECS library for Elm. `Ecs` provides an easy way to build a full game, using common Entity-Component-System architecture.",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "dev:review": "elm-review --watch --fix",
+    "test": "elm-test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wolfadex/elm-ecs.git"
+  },
+  "author": "Wolfgang Schuster",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wolfadex/elm-ecs/issues"
+  },
+  "homepage": "https://github.com/wolfadex/elm-ecs#readme",
+  "devDependencies": {
+    "elm-review": "^2.7.3",
+    "elm-test": "^0.19.1-revision9"
+  }
+}

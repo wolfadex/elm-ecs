@@ -4,6 +4,7 @@ module Logic.System exposing
     , foldl, foldl2, foldl3, foldl4, foldl5
     , indexedFoldl, indexedFoldl2, indexedFoldl3, indexedFoldl4, indexedFoldl5
     , applyIf, applyMaybe
+    , Acc2, Acc3, Acc4, Acc5
     )
 
 {-| **System**: main logic driver, that is used to stepping on each game-loop and update `World`
@@ -19,11 +20,16 @@ module Logic.System exposing
 
 @docs applyIf, applyMaybe
 
+
+# Todo
+
+@docs Acc2, Acc3, Acc4, Acc5
+
 -}
 
 import Array
 import Logic.Component as Component
-import Logic.Entity exposing (EntityID)
+import Logic.Entity exposing (EntityId)
 import Logic.Internal exposing (indexedFoldlArray)
 
 
@@ -34,7 +40,8 @@ update spec f world =
     spec.set (f (spec.get world)) world
 
 
-{-| -}
+{-| A function for updating a `world`
+-}
 type alias System world =
     world -> world
 
@@ -65,7 +72,7 @@ foldl f comp1 acc_ =
 `indexedFoldl` is to `foldl` as `List.indexedMap` is to `List.map`.
 
 -}
-indexedFoldl : (EntityID -> comp1 -> acc -> acc) -> Component.Set comp1 -> acc -> acc
+indexedFoldl : (EntityId -> comp1 -> acc -> acc) -> Component.Set comp1 -> acc -> acc
 indexedFoldl f comp1 acc_ =
     indexedFoldlArray
         (\i value acc ->
@@ -90,8 +97,9 @@ foldl2 f comp1 comp2 acc_ =
         comp1
 
 
-{-| -}
-indexedFoldl2 : (EntityID -> comp1 -> comp2 -> acc -> acc) -> Component.Set comp1 -> Component.Set comp2 -> acc -> acc
+{-| Same as [`indexedFoldl`](#indexedFoldl) only with 2 components
+-}
+indexedFoldl2 : (EntityId -> comp1 -> comp2 -> acc -> acc) -> Component.Set comp1 -> Component.Set comp2 -> acc -> acc
 indexedFoldl2 f comp1 comp2 acc_ =
     indexedFoldlArray
         (\n value acc ->
@@ -122,7 +130,7 @@ foldl3 f comp1 comp2 comp3 acc_ =
 
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 3 components
 -}
-indexedFoldl3 : (EntityID -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Component.Set comp1 -> Component.Set comp2 -> Component.Set comp3 -> acc -> acc
+indexedFoldl3 : (EntityId -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Component.Set comp1 -> Component.Set comp2 -> Component.Set comp3 -> acc -> acc
 indexedFoldl3 f comp1 comp2 comp3 acc_ =
     indexedFoldlArray
         (\n value acc ->
@@ -163,7 +171,7 @@ foldl4 f comp1 comp2 comp3 comp4 acc_ =
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 4 components
 -}
 indexedFoldl4 :
-    (EntityID -> comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
+    (EntityId -> comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
     -> Component.Set comp1
     -> Component.Set comp2
     -> Component.Set comp3
@@ -211,7 +219,7 @@ foldl5 f comp1 comp2 comp3 comp4 acc_ =
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 5 components
 -}
 indexedFoldl5 :
-    (EntityID -> comp1 -> comp2 -> comp3 -> comp4 -> comp5 -> acc -> acc)
+    (EntityId -> comp1 -> comp2 -> comp3 -> comp4 -> comp5 -> acc -> acc)
     -> Component.Set comp1
     -> Component.Set comp2
     -> Component.Set comp3
@@ -245,6 +253,8 @@ step f { get, set } world =
     set (get world |> Array.map (Maybe.map f)) world
 
 
+{-| Helper for [`step2`](#step2)
+-}
 type alias Acc2 a b =
     { a : Component.Set a
     , b : Component.Set b
@@ -272,15 +282,19 @@ step2 :
     -> System world
 step2 f spec1 spec2 world =
     let
+        set1 : EntityId -> a -> System (Acc2 a b)
         set1 i a acc =
             { acc | a = Array.set i (Just a) acc.a }
 
+        set2 : EntityId -> b -> System (Acc2 a b)
         set2 i b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
+        combined : { a : Component.Set a, b : Component.Set b }
         combined =
             { a = spec1.get world, b = spec2.get world }
 
+        result : Acc2 a b
         result =
             indexedFoldlArray
                 (\n value acc ->
@@ -297,6 +311,8 @@ step2 f spec1 spec2 world =
         |> applyIf (result.b /= combined.b) (spec2.set result.b)
 
 
+{-| Helper for [`step3`](#step3)
+-}
 type alias Acc3 a b c =
     { a : Component.Set a
     , b : Component.Set b
@@ -318,18 +334,23 @@ step3 :
     -> System world
 step3 f spec1 spec2 spec3 world =
     let
+        set1 : EntityId -> a -> System (Acc3 a b c)
         set1 i a acc =
             { acc | a = Array.set i (Just a) acc.a }
 
+        set2 : EntityId -> b -> System (Acc3 a b c)
         set2 i b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
+        set3 : EntityId -> c -> System (Acc3 a b c)
         set3 i c acc =
             { acc | c = Array.set i (Just c) acc.c }
 
+        combined : { a : Component.Set a, b : Component.Set b, c : Component.Set c }
         combined =
             { a = spec1.get world, b = spec2.get world, c = spec3.get world }
 
+        result : Acc3 a b c
         result =
             indexedFoldlArray
                 (\n value acc ->
@@ -349,6 +370,8 @@ step3 f spec1 spec2 spec3 world =
         |> applyIf (result.c /= combined.c) (spec3.set result.c)
 
 
+{-| Helper for [`step4`](#step4)
+-}
 type alias Acc4 a b c d =
     { a : Component.Set a
     , b : Component.Set b
@@ -373,18 +396,23 @@ step4 :
     -> System world
 step4 f spec1 spec2 spec3 spec4 world =
     let
+        set1 : EntityId -> a -> System (Acc4 a b c d)
         set1 i a acc =
             { acc | a = Array.set i (Just a) acc.a }
 
+        set2 : EntityId -> b -> System (Acc4 a b c d)
         set2 i b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
+        set3 : EntityId -> c -> System (Acc4 a b c d)
         set3 i c acc =
             { acc | c = Array.set i (Just c) acc.c }
 
+        set4 : EntityId -> d -> System (Acc4 a b c d)
         set4 i d acc =
             { acc | d = Array.set i (Just d) acc.d }
 
+        combined : { a : Component.Set a, b : Component.Set b, c : Component.Set c, d : Component.Set d }
         combined =
             { a = spec1.get world
             , b = spec2.get world
@@ -392,6 +420,7 @@ step4 f spec1 spec2 spec3 spec4 world =
             , d = spec4.get world
             }
 
+        result : Acc4 a b c d
         result =
             indexedFoldlArray
                 (\n value acc ->
@@ -413,6 +442,8 @@ step4 f spec1 spec2 spec3 spec4 world =
         |> applyIf (result.d /= combined.d) (spec4.set result.d)
 
 
+{-| Helper for [`step5`](#step5)
+-}
 type alias Acc5 a b c d e =
     { a : Component.Set a
     , b : Component.Set b
@@ -440,21 +471,27 @@ step5 :
     -> System world
 step5 f spec1 spec2 spec3 spec4 spec5 world =
     let
+        set1 : EntityId -> a -> System (Acc5 a b c d e)
         set1 i a acc =
             { acc | a = Array.set i (Just a) acc.a }
 
+        set2 : EntityId -> b -> System (Acc5 a b c d e)
         set2 i b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
+        set3 : EntityId -> c -> System (Acc5 a b c d e)
         set3 i c acc =
             { acc | c = Array.set i (Just c) acc.c }
 
+        set4 : EntityId -> d -> System (Acc5 a b c d e)
         set4 i d acc =
             { acc | d = Array.set i (Just d) acc.d }
 
+        set5 : EntityId -> e -> System (Acc5 a b c d e)
         set5 i e acc =
             { acc | e = Array.set i (Just e) acc.e }
 
+        combined : { a : Component.Set a, b : Component.Set b, c : Component.Set c, d : Component.Set d, e : Component.Set e }
         combined =
             { a = spec1.get world
             , b = spec2.get world
@@ -463,6 +500,7 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
             , e = spec5.get world
             }
 
+        result : Acc5 a b c d e
         result =
             indexedFoldlArray
                 (\n value acc ->
