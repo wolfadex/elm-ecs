@@ -4,9 +4,9 @@ import Browser
 import Browser.Events
 import Html exposing (..)
 import Html.Attributes exposing (style)
-import Logic.Component as Component
-import Logic.Entity as Entity
-import Logic.System as System exposing (System, applyIf)
+import Ecs.Component
+import Ecs.Entity
+import Ecs.System as System exposing (System, applyIf)
 
 
 main : Program () World Float
@@ -37,7 +37,7 @@ main =
         }
 
 
-system : Component.Spec ( Int, Int ) World -> Component.Spec ( Int, Int ) World -> System World
+system : Ecs.Component.Spec ( Int, Int ) World -> Ecs.Component.Spec ( Int, Int ) World -> System World
 system spec1 spec2 w =
     System.step2
         (\( ( vx, vy ), setVel ) ( ( px, py ), setPos ) acc ->
@@ -61,8 +61,8 @@ system spec1 spec2 w =
 
 
 type alias World =
-    { position : Component.Set ( Int, Int )
-    , velocity : Component.Set ( Int, Int )
+    { position : Ecs.Component.Component ( Int, Int )
+    , velocity : Ecs.Component.Component ( Int, Int )
     , windowWidth : Int
     , windowHeight : Int
     }
@@ -70,8 +70,8 @@ type alias World =
 
 world : World
 world =
-    { position = Component.empty
-    , velocity = Component.empty
+    { position = Ecs.Component.empty
+    , velocity = Ecs.Component.empty
     , windowWidth = 800
     , windowHeight = 600
     }
@@ -82,19 +82,19 @@ spawn w_ =
     List.range 0 10
         |> List.foldl
             (\i ->
-                Entity.create i
-                    >> Entity.with ( positionSpec, ( i * 3, i * 5 ) )
-                    >> Entity.with ( velocitySpec, ( modBy 3 i + 1, modBy 5 i + 1 ) )
+                Ecs.Entity.spawn
+                    >> Ecs.Entity.with ( positionSpec, ( i * 3, i * 5 ) )
+                    >> Ecs.Entity.with ( velocitySpec, ( modBy 3 i + 1, modBy 5 i + 1 ) )
                     >> Tuple.second
             )
             w_
 
 
-positionSpec : Component.Spec ( Int, Int ) { world | position : Component.Set ( Int, Int ) }
+positionSpec : Ecs.Component.Spec ( Int, Int ) { world | position : Ecs.Component.Component ( Int, Int ) }
 positionSpec =
-    Component.Spec .position (\comps w -> { w | position = comps })
+    Ecs.Component.Spec .position (\comps w -> { w | position = comps })
 
 
-velocitySpec : Component.Spec ( Int, Int ) { world | velocity : Component.Set ( Int, Int ) }
+velocitySpec : Ecs.Component.Spec ( Int, Int ) { world | velocity : Ecs.Component.Component ( Int, Int ) }
 velocitySpec =
-    Component.Spec .velocity (\comps w -> { w | velocity = comps })
+    Ecs.Component.Spec .velocity (\comps w -> { w | velocity = comps })

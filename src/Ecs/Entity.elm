@@ -86,7 +86,7 @@ remove spec ( (EntityId entityId) as id, world ) =
 
 {-| Set component to spawn with a new entity
 
-    Ecs.Entity.create ( id, world )
+    Ecs.Entity.spawn world
         |> Ecs.Entity.with ( positionSpec, positionComponent )
         |> Ecs.Entity.with ( velocitySpec, velocityComponent )
 
@@ -94,7 +94,7 @@ remove spec ( (EntityId entityId) as id, world ) =
 with : ( Ecs.Component.Spec comp world, comp ) -> ( EntityId, world ) -> ( EntityId, world )
 with ( spec, component ) ( entityID, world ) =
     let
-        updatedComponents : Ecs.Component.Set comp
+        updatedComponents : Ecs.Component.Component comp
         updatedComponents =
             Ecs.Component.spawn entityID
                 component

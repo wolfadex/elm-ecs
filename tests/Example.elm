@@ -10,7 +10,7 @@ import Test exposing (Test)
 
 type alias World =
     { ecsConfig : Ecs.Entity.EcsConfig
-    , age : Ecs.Component.Set Int
+    , age : Ecs.Component.Component Int
     }
 
 

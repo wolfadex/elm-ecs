@@ -1,5 +1,5 @@
 module Ecs.Component exposing
-    ( Set, Spec, empty
+    ( Component, Spec, empty
     , set, spawn, remove
     , get, get2, update
     , map, filterMap
@@ -16,15 +16,15 @@ Example:
     type alias Velocity =
         { x : Float, y : Float }
 
-    spec : Ecs.Component.Spec Velocity { world | v : Ecs.Component.Set Velocity }
+    spec : Ecs.Component.Spec Velocity { world | v : Ecs.Component.Component Velocity }
     spec =
         Ecs.Component.Spec .v (\comps world -> { world | v = comps })
 
-    empty : Ecs.Component.Set Velocity
+    empty : Ecs.Component.Component Velocity
     empty =
         Ecs.Component.empty
 
-@docs Set, Spec, empty
+@docs Component, Spec, empty
 
 
 # Manipulations
@@ -58,40 +58,40 @@ type alias EntityId =
 
 {-| Component storage, the main building block of the world
 -}
-type alias Set comp =
+type alias Component comp =
     Array (Maybe comp)
 
 
-{-| Component specification, how to get `Component.Set` from the world and set back into the world (mainly used by Systems)
+{-| Component specification, how to get a `Component` from the world and set back into the world (mainly used by Systems)
 -}
 type alias Spec comp world =
-    { get : world -> Set comp
-    , set : Set comp -> world -> world
+    { get : world -> Component comp
+    , set : Component comp -> world -> world
     }
 
 
-{-| Create an empty `Component.Set` - mostly used to init component sets in the world.
+{-| Create an empty `Component` - mostly used to init component sets in the world.
 -}
-empty : Set comp
+empty : Component comp
 empty =
     Array.empty
 
 
-{-| Remove component from `Component.Set` by `EntityId`, or return unchanged if component not in `Set`.
+{-| Remove `Component` from an entity by `EntityId`, or return unchanged if the entity never has a `Component`.
 -}
-remove : EntityId -> Set a -> Set a
+remove : EntityId -> Component a -> Component a
 remove (EntityId entityId) components =
     Array.set entityId Nothing components
 
 
-{-| Safe way to create a component, same as `set`, only if an index is out of range `Component.Set` will be stretched.
+{-| Safe way to create a component, same as `set`, only if an index is out of range `Component` will be stretched.
 
     test =
         -- Just 5
         empty |> spawn 5 10 |> get 5
 
 -}
-spawn : EntityId -> a -> Set a -> Set a
+spawn : EntityId -> a -> Component a -> Component a
 spawn (EntityId entityId) value components =
     if entityId - Array.length components < 0 then
         Array.set entityId (Just value) components
@@ -101,28 +101,28 @@ spawn (EntityId entityId) value components =
             |> Array.push (Just value)
 
 
-{-| Set the component at a particular index. Returns an updated `Component.Set`. If the index is out of range, the `Component.Set` is unaltered.
+{-| Set the component at a particular index. Returns an updated `Component`. If the index is out of range, the `Component` is unaltered.
 
     test =
         -- Nothing
         empty |> set 5 10 |> get 5
 
 -}
-set : EntityId -> a -> Set a -> Set a
+set : EntityId -> a -> Component a -> Component a
 set (EntityId entityId) value components =
     Array.set entityId (Just value) components
 
 
 {-| Get component for `EntityId`.
 -}
-get : EntityId -> Set comp -> Maybe comp
+get : EntityId -> Component comp -> Maybe comp
 get (EntityId entityId) =
     Array.get entityId >> Maybe.withDefault Nothing
 
 
 {-| Get components Tuple for `EntityId`.
 -}
-get2 : EntityId -> Set comp -> Set comp2 -> Maybe ( comp, comp2 )
+get2 : EntityId -> Component comp -> Component comp2 -> Maybe ( comp, comp2 )
 get2 entityId set1 set2 =
     Maybe.map2 Tuple.pair
         (get entityId set1)
@@ -131,65 +131,65 @@ get2 entityId set1 set2 =
 
 {-| Filter out certain components.
 -}
-filterMap : (comp -> Maybe comp) -> Set comp -> Set comp
+filterMap : (comp -> Maybe comp) -> Component comp -> Component comp
 filterMap f comps =
     Array.map (Maybe.andThen f) comps
 
 
-{-| Apply a function on every component in a `Component.Set`.
+{-| Apply a function on every component in a `Component`.
 
     map sqrt (fromList [ ( 0, 1 ), ( 1, 4 ), ( 2, 9 ) ])
         |> (==) fromList [ ( 0, 1 ), ( 1, 2 ), ( 2, 3 ) ]
 
 -}
-map : (comp -> comp) -> Set comp -> Set comp
+map : (comp -> comp) -> Component comp -> Component comp
 map f comps =
     Array.map (Maybe.map f) comps
 
 
 {-| Update Component by `EntityId`.
 -}
-update : EntityId -> (comp -> comp) -> Set comp -> Set comp
+update : EntityId -> (comp -> comp) -> Component comp -> Component comp
 update entityId f =
     Ecs.Internal.update entityId (Maybe.map f)
 
 
-{-| Create a `Component.Set` from a `List`.
+{-| Create a `Component` from a `List`.
 
 **Note**: Useful for data serialization.
 
 -}
-fromList : List ( EntityId, a ) -> Set a
+fromList : List ( EntityId, a ) -> Component a
 fromList =
     List.foldl (\( index, value ) components -> spawn index value components) empty
 
 
-{-| Convert a `Component.Set` into an association list of id-component pairs, sorted by id.
+{-| Convert a `Component` into an association list of id-component pairs, sorted by id.
 
 **Note**: Useful for data deserialization.
 
 -}
-toList : Set a -> List ( EntityId, a )
+toList : Component a -> List ( EntityId, a )
 toList =
     Ecs.Internal.indexedFoldlArray (\i a acc -> Maybe.map (\a_ -> ( i, a_ ) :: acc) a |> Maybe.withDefault acc) []
 
 
-{-| Create a `Component.Set` from a dictionary.
+{-| Create a `Component` from a dictionary.
 
 **Note**: Useful for data serialization.
 
 -}
-fromDict : Dict Int a -> Set a
+fromDict : Dict Int a -> Component a
 fromDict =
     Dict.foldl (\index value components -> spawn (EntityId index) value components) empty
 
 
-{-| Create a dictionary from a `Component.Set`.
+{-| Create a dictionary from a `Component`.
 
 **Note**: Useful for data deserialization.
 
 -}
-toDict : Set a -> Dict Int a
+toDict : Component a -> Dict Int a
 toDict =
     Ecs.Internal.indexedFoldlArray
         (\(EntityId entityId) a acc ->

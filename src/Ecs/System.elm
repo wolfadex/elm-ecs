@@ -33,9 +33,9 @@ import Ecs.Entity exposing (EntityId)
 import Ecs.Internal exposing (EntityId(..))
 
 
-{-| Update whole `Ecs.Component.Set`
+{-| Update whole `Ecs.Component.Component`
 -}
-update : Ecs.Component.Spec comp world -> (Ecs.Component.Set comp -> Ecs.Component.Set comp) -> System world
+update : Ecs.Component.Spec comp world -> (Ecs.Component.Component comp -> Ecs.Component.Component comp) -> System world
 update spec f world =
     spec.set (f (spec.get world)) world
 
@@ -46,7 +46,7 @@ type alias System world =
     world -> world
 
 
-{-| Reduce a `Ecs.Component.Set` from the left.
+{-| Reduce a `Ecs.Component.Component` from the left.
 
 Example count how much enemies left in the world:
 
@@ -57,7 +57,7 @@ Example count how much enemies left in the world:
         foldl (\_ -> (+) 1) enemySet 0
 
 -}
-foldl : (comp1 -> acc -> acc) -> Ecs.Component.Set comp1 -> acc -> acc
+foldl : (comp1 -> acc -> acc) -> Ecs.Component.Component comp1 -> acc -> acc
 foldl f comp1 acc_ =
     Array.foldl
         (\value acc ->
@@ -72,7 +72,7 @@ foldl f comp1 acc_ =
 `indexedFoldl` is to `foldl` as `List.indexedMap` is to `List.map`.
 
 -}
-indexedFoldl : (EntityId -> comp1 -> acc -> acc) -> Ecs.Component.Set comp1 -> acc -> acc
+indexedFoldl : (EntityId -> comp1 -> acc -> acc) -> Ecs.Component.Component comp1 -> acc -> acc
 indexedFoldl f comp1 acc_ =
     Ecs.Internal.indexedFoldlArray
         (\i value acc ->
@@ -82,9 +82,9 @@ indexedFoldl f comp1 acc_ =
         comp1
 
 
-{-| Step over all entities that have both components and reduce an `Ecs.Component.Set`s from the left.
+{-| Step over all entities that have both components and reduce an `Ecs.Component.Component`s from the left.
 -}
-foldl2 : (comp1 -> comp2 -> acc -> acc) -> Ecs.Component.Set comp1 -> Ecs.Component.Set comp2 -> acc -> acc
+foldl2 : (comp1 -> comp2 -> acc -> acc) -> Ecs.Component.Component comp1 -> Ecs.Component.Component comp2 -> acc -> acc
 foldl2 f comp1 comp2 acc_ =
     Ecs.Internal.indexedFoldlArray
         (\n value acc ->
@@ -99,7 +99,7 @@ foldl2 f comp1 comp2 acc_ =
 
 {-| Same as [`indexedFoldl`](#indexedFoldl) only with 2 components
 -}
-indexedFoldl2 : (EntityId -> comp1 -> comp2 -> acc -> acc) -> Ecs.Component.Set comp1 -> Ecs.Component.Set comp2 -> acc -> acc
+indexedFoldl2 : (EntityId -> comp1 -> comp2 -> acc -> acc) -> Ecs.Component.Component comp1 -> Ecs.Component.Component comp2 -> acc -> acc
 indexedFoldl2 f comp1 comp2 acc_ =
     Ecs.Internal.indexedFoldlArray
         (\n value acc ->
@@ -114,7 +114,7 @@ indexedFoldl2 f comp1 comp2 acc_ =
 
 {-| Same as [`foldl2`](#foldl2) only with 3 components
 -}
-foldl3 : (comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component.Set comp1 -> Ecs.Component.Set comp2 -> Ecs.Component.Set comp3 -> acc -> acc
+foldl3 : (comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component.Component comp1 -> Ecs.Component.Component comp2 -> Ecs.Component.Component comp3 -> acc -> acc
 foldl3 f comp1 comp2 comp3 acc_ =
     Ecs.Internal.indexedFoldlArray
         (\n value acc ->
@@ -130,7 +130,7 @@ foldl3 f comp1 comp2 comp3 acc_ =
 
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 3 components
 -}
-indexedFoldl3 : (EntityId -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component.Set comp1 -> Ecs.Component.Set comp2 -> Ecs.Component.Set comp3 -> acc -> acc
+indexedFoldl3 : (EntityId -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component.Component comp1 -> Ecs.Component.Component comp2 -> Ecs.Component.Component comp3 -> acc -> acc
 indexedFoldl3 f comp1 comp2 comp3 acc_ =
     Ecs.Internal.indexedFoldlArray
         (\n value acc ->
@@ -148,10 +148,10 @@ indexedFoldl3 f comp1 comp2 comp3 acc_ =
 -}
 foldl4 :
     (comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
-    -> Ecs.Component.Set comp1
-    -> Ecs.Component.Set comp2
-    -> Ecs.Component.Set comp3
-    -> Ecs.Component.Set comp4
+    -> Ecs.Component.Component comp1
+    -> Ecs.Component.Component comp2
+    -> Ecs.Component.Component comp3
+    -> Ecs.Component.Component comp4
     -> acc
     -> acc
 foldl4 f comp1 comp2 comp3 comp4 acc_ =
@@ -172,10 +172,10 @@ foldl4 f comp1 comp2 comp3 comp4 acc_ =
 -}
 indexedFoldl4 :
     (EntityId -> comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
-    -> Ecs.Component.Set comp1
-    -> Ecs.Component.Set comp2
-    -> Ecs.Component.Set comp3
-    -> Ecs.Component.Set comp4
+    -> Ecs.Component.Component comp1
+    -> Ecs.Component.Component comp2
+    -> Ecs.Component.Component comp3
+    -> Ecs.Component.Component comp4
     -> acc
     -> acc
 indexedFoldl4 f comp1 comp2 comp3 comp4 acc_ =
@@ -196,10 +196,10 @@ indexedFoldl4 f comp1 comp2 comp3 comp4 acc_ =
 -}
 foldl5 :
     (comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
-    -> Ecs.Component.Set comp1
-    -> Ecs.Component.Set comp2
-    -> Ecs.Component.Set comp3
-    -> Ecs.Component.Set comp4
+    -> Ecs.Component.Component comp1
+    -> Ecs.Component.Component comp2
+    -> Ecs.Component.Component comp3
+    -> Ecs.Component.Component comp4
     -> acc
     -> acc
 foldl5 f comp1 comp2 comp3 comp4 acc_ =
@@ -220,11 +220,11 @@ foldl5 f comp1 comp2 comp3 comp4 acc_ =
 -}
 indexedFoldl5 :
     (EntityId -> comp1 -> comp2 -> comp3 -> comp4 -> comp5 -> acc -> acc)
-    -> Ecs.Component.Set comp1
-    -> Ecs.Component.Set comp2
-    -> Ecs.Component.Set comp3
-    -> Ecs.Component.Set comp4
-    -> Ecs.Component.Set comp5
+    -> Ecs.Component.Component comp1
+    -> Ecs.Component.Component comp2
+    -> Ecs.Component.Component comp3
+    -> Ecs.Component.Component comp4
+    -> Ecs.Component.Component comp5
     -> acc
     -> acc
 indexedFoldl5 f comp1 comp2 comp3 comp4 comp5 acc_ =
@@ -242,7 +242,7 @@ indexedFoldl5 f comp1 comp2 comp3 comp4 comp5 acc_ =
         comp1
 
 
-{-| Single component mapping, Same as`List.map` - only for `Ecs.Component.Set` inside `World`
+{-| Single component mapping, Same as`List.map` - only for `Ecs.Component.Component` inside `World`
 
     gravitySystem =
         Logic.System.step (Vec2.add gravity) accelerationSpec
@@ -256,8 +256,8 @@ step f { get, set } world =
 {-| Helper for [`step2`](#step2)
 -}
 type alias Acc2 a b =
-    { a : Ecs.Component.Set a
-    , b : Ecs.Component.Set b
+    { a : Ecs.Component.Component a
+    , b : Ecs.Component.Component b
     }
 
 
@@ -290,7 +290,7 @@ step2 f spec1 spec2 world =
         set2 (EntityId i) b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
-        combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b }
+        combined : { a : Ecs.Component.Component a, b : Ecs.Component.Component b }
         combined =
             { a = spec1.get world, b = spec2.get world }
 
@@ -314,9 +314,9 @@ step2 f spec1 spec2 world =
 {-| Helper for [`step3`](#step3)
 -}
 type alias Acc3 a b c =
-    { a : Ecs.Component.Set a
-    , b : Ecs.Component.Set b
-    , c : Ecs.Component.Set c
+    { a : Ecs.Component.Component a
+    , b : Ecs.Component.Component b
+    , c : Ecs.Component.Component c
     }
 
 
@@ -346,7 +346,7 @@ step3 f spec1 spec2 spec3 world =
         set3 (EntityId i) c acc =
             { acc | c = Array.set i (Just c) acc.c }
 
-        combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c }
+        combined : { a : Ecs.Component.Component a, b : Ecs.Component.Component b, c : Ecs.Component.Component c }
         combined =
             { a = spec1.get world, b = spec2.get world, c = spec3.get world }
 
@@ -373,10 +373,10 @@ step3 f spec1 spec2 spec3 world =
 {-| Helper for [`step4`](#step4)
 -}
 type alias Acc4 a b c d =
-    { a : Ecs.Component.Set a
-    , b : Ecs.Component.Set b
-    , c : Ecs.Component.Set c
-    , d : Ecs.Component.Set d
+    { a : Ecs.Component.Component a
+    , b : Ecs.Component.Component b
+    , c : Ecs.Component.Component c
+    , d : Ecs.Component.Component d
     }
 
 
@@ -412,7 +412,7 @@ step4 f spec1 spec2 spec3 spec4 world =
         set4 (EntityId i) d acc =
             { acc | d = Array.set i (Just d) acc.d }
 
-        combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c, d : Ecs.Component.Set d }
+        combined : { a : Ecs.Component.Component a, b : Ecs.Component.Component b, c : Ecs.Component.Component c, d : Ecs.Component.Component d }
         combined =
             { a = spec1.get world
             , b = spec2.get world
@@ -445,11 +445,11 @@ step4 f spec1 spec2 spec3 spec4 world =
 {-| Helper for [`step5`](#step5)
 -}
 type alias Acc5 a b c d e =
-    { a : Ecs.Component.Set a
-    , b : Ecs.Component.Set b
-    , c : Ecs.Component.Set c
-    , d : Ecs.Component.Set d
-    , e : Ecs.Component.Set e
+    { a : Ecs.Component.Component a
+    , b : Ecs.Component.Component b
+    , c : Ecs.Component.Component c
+    , d : Ecs.Component.Component d
+    , e : Ecs.Component.Component e
     }
 
 
@@ -491,7 +491,7 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
         set5 (EntityId i) e acc =
             { acc | e = Array.set i (Just e) acc.e }
 
-        combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c, d : Ecs.Component.Set d, e : Ecs.Component.Set e }
+        combined : { a : Ecs.Component.Component a, b : Ecs.Component.Component b, c : Ecs.Component.Component c, d : Ecs.Component.Component d, e : Ecs.Component.Component e }
         combined =
             { a = spec1.get world
             , b = spec2.get world
