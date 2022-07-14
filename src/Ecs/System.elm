@@ -30,7 +30,7 @@ module Ecs.System exposing
 import Array
 import Ecs.Component
 import Ecs.Entity exposing (EntityId)
-import Ecs.Internal
+import Ecs.Internal exposing (EntityId(..))
 
 
 {-| Update whole `Ecs.Component.Set`
@@ -283,11 +283,11 @@ step2 :
 step2 f spec1 spec2 world =
     let
         set1 : EntityId -> a -> System (Acc2 a b)
-        set1 i a acc =
+        set1 (EntityId i) a acc =
             { acc | a = Array.set i (Just a) acc.a }
 
         set2 : EntityId -> b -> System (Acc2 a b)
-        set2 i b acc =
+        set2 (EntityId i) b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
         combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b }
@@ -335,15 +335,15 @@ step3 :
 step3 f spec1 spec2 spec3 world =
     let
         set1 : EntityId -> a -> System (Acc3 a b c)
-        set1 i a acc =
+        set1 (EntityId i) a acc =
             { acc | a = Array.set i (Just a) acc.a }
 
         set2 : EntityId -> b -> System (Acc3 a b c)
-        set2 i b acc =
+        set2 (EntityId i) b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
         set3 : EntityId -> c -> System (Acc3 a b c)
-        set3 i c acc =
+        set3 (EntityId i) c acc =
             { acc | c = Array.set i (Just c) acc.c }
 
         combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c }
@@ -397,19 +397,19 @@ step4 :
 step4 f spec1 spec2 spec3 spec4 world =
     let
         set1 : EntityId -> a -> System (Acc4 a b c d)
-        set1 i a acc =
+        set1 (EntityId i) a acc =
             { acc | a = Array.set i (Just a) acc.a }
 
         set2 : EntityId -> b -> System (Acc4 a b c d)
-        set2 i b acc =
+        set2 (EntityId i) b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
         set3 : EntityId -> c -> System (Acc4 a b c d)
-        set3 i c acc =
+        set3 (EntityId i) c acc =
             { acc | c = Array.set i (Just c) acc.c }
 
         set4 : EntityId -> d -> System (Acc4 a b c d)
-        set4 i d acc =
+        set4 (EntityId i) d acc =
             { acc | d = Array.set i (Just d) acc.d }
 
         combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c, d : Ecs.Component.Set d }
@@ -472,23 +472,23 @@ step5 :
 step5 f spec1 spec2 spec3 spec4 spec5 world =
     let
         set1 : EntityId -> a -> System (Acc5 a b c d e)
-        set1 i a acc =
+        set1 (EntityId i) a acc =
             { acc | a = Array.set i (Just a) acc.a }
 
         set2 : EntityId -> b -> System (Acc5 a b c d e)
-        set2 i b acc =
+        set2 (EntityId i) b acc =
             { acc | b = Array.set i (Just b) acc.b }
 
         set3 : EntityId -> c -> System (Acc5 a b c d e)
-        set3 i c acc =
+        set3 (EntityId i) c acc =
             { acc | c = Array.set i (Just c) acc.c }
 
         set4 : EntityId -> d -> System (Acc5 a b c d e)
-        set4 i d acc =
+        set4 (EntityId i) d acc =
             { acc | d = Array.set i (Just d) acc.d }
 
         set5 : EntityId -> e -> System (Acc5 a b c d e)
-        set5 i e acc =
+        set5 (EntityId i) e acc =
             { acc | e = Array.set i (Just e) acc.e }
 
         combined : { a : Ecs.Component.Set a, b : Ecs.Component.Set b, c : Ecs.Component.Set c, d : Ecs.Component.Set d, e : Ecs.Component.Set e }

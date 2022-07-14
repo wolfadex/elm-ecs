@@ -5,7 +5,6 @@ module Ecs.Component exposing
     , map, filterMap
     , fromList, toList
     , fromDict, toDict
-    , EntityId
     )
 
 {-| **Component**: the raw data for one aspect of the object, and how it interacts with the world. "Labels the Entity as possessing this particular aspect".
@@ -44,28 +43,23 @@ Example:
 
 @docs fromDict, toDict
 
-
-# Todo
-
-@docs EntityId
-
 -}
 
 import Array exposing (Array)
 import Dict exposing (Dict)
-import Ecs.Internal
+import Ecs.Internal exposing (EntityId(..))
+
+
+{-| The ID of an entity
+-}
+type alias EntityId =
+    Ecs.Internal.EntityId
 
 
 {-| Component storage, the main building block of the world
 -}
 type alias Set comp =
     Array (Maybe comp)
-
-
-{-| The ID of an entity
--}
-type alias EntityId =
-    Int
 
 
 {-| Component specification, how to get `Component.Set` from the world and set back into the world (mainly used by Systems)
@@ -83,11 +77,11 @@ empty =
     Array.empty
 
 
-{-| Remove component from `Component.Set` by `EntityID`, or return unchanged if component not in `Set`.
+{-| Remove component from `Component.Set` by `EntityId`, or return unchanged if component not in `Set`.
 -}
 remove : EntityId -> Set a -> Set a
-remove entityID components =
-    Array.set entityID Nothing components
+remove (EntityId entityId) components =
+    Array.set entityId Nothing components
 
 
 {-| Safe way to create a component, same as `set`, only if an index is out of range `Component.Set` will be stretched.
@@ -98,12 +92,12 @@ remove entityID components =
 
 -}
 spawn : EntityId -> a -> Set a -> Set a
-spawn id value components =
-    if id - Array.length components < 0 then
-        Array.set id (Just value) components
+spawn (EntityId entityId) value components =
+    if entityId - Array.length components < 0 then
+        Array.set entityId (Just value) components
 
     else
-        Array.append components (Array.repeat (id - Array.length components) Nothing)
+        Array.append components (Array.repeat (entityId - Array.length components) Nothing)
             |> Array.push (Just value)
 
 
@@ -115,24 +109,24 @@ spawn id value components =
 
 -}
 set : EntityId -> a -> Set a -> Set a
-set id value components =
-    Array.set id (Just value) components
+set (EntityId entityId) value components =
+    Array.set entityId (Just value) components
 
 
 {-| Get component for `EntityId`.
 -}
 get : EntityId -> Set comp -> Maybe comp
-get id =
-    Array.get id >> Maybe.withDefault Nothing
+get (EntityId entityId) =
+    Array.get entityId >> Maybe.withDefault Nothing
 
 
 {-| Get components Tuple for `EntityId`.
 -}
 get2 : EntityId -> Set comp -> Set comp2 -> Maybe ( comp, comp2 )
-get2 id set1 set2 =
+get2 entityId set1 set2 =
     Maybe.map2 Tuple.pair
-        (get id set1)
-        (get id set2)
+        (get entityId set1)
+        (get entityId set2)
 
 
 {-| Filter out certain components.
@@ -153,11 +147,11 @@ map f comps =
     Array.map (Maybe.map f) comps
 
 
-{-| Update Component by `EntityID`.
+{-| Update Component by `EntityId`.
 -}
 update : EntityId -> (comp -> comp) -> Set comp -> Set comp
-update i f =
-    Ecs.Internal.update i (Maybe.map f)
+update entityId f =
+    Ecs.Internal.update entityId (Maybe.map f)
 
 
 {-| Create a `Component.Set` from a `List`.
@@ -185,9 +179,9 @@ toList =
 **Note**: Useful for data serialization.
 
 -}
-fromDict : Dict EntityId a -> Set a
+fromDict : Dict Int a -> Set a
 fromDict =
-    Dict.foldl (\index value components -> spawn index value components) empty
+    Dict.foldl (\index value components -> spawn (EntityId index) value components) empty
 
 
 {-| Create a dictionary from a `Component.Set`.
@@ -195,11 +189,11 @@ fromDict =
 **Note**: Useful for data deserialization.
 
 -}
-toDict : Set a -> Dict EntityId a
+toDict : Set a -> Dict Int a
 toDict =
     Ecs.Internal.indexedFoldlArray
-        (\i a acc ->
-            Maybe.map (\a_ -> Dict.insert i a_ acc) a
+        (\(EntityId entityId) a acc ->
+            Maybe.map (\a_ -> Dict.insert entityId a_ acc) a
                 |> Maybe.withDefault acc
         )
         Dict.empty
