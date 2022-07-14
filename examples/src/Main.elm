@@ -61,7 +61,8 @@ system spec1 spec2 w =
 
 
 type alias World =
-    { position : Ecs.Component.Component ( Int, Int )
+    { ecsConfig : Ecs.Entity.EcsConfig
+    , position : Ecs.Component.Component ( Int, Int )
     , velocity : Ecs.Component.Component ( Int, Int )
     , windowWidth : Int
     , windowHeight : Int
@@ -70,10 +71,18 @@ type alias World =
 
 world : World
 world =
-    { position = Ecs.Component.empty
+    { ecsConfig = Ecs.Entity.initConfig
+    , position = Ecs.Component.empty
     , velocity = Ecs.Component.empty
     , windowWidth = 800
     , windowHeight = 600
+    }
+
+
+ecsConfigSpec : Ecs.Entity.EcsConfigSpec World
+ecsConfigSpec =
+    { get = .ecsConfig
+    , set = \ecsConfig w -> { w | ecsConfig = ecsConfig }
     }
 
 
@@ -82,7 +91,7 @@ spawn w_ =
     List.range 0 10
         |> List.foldl
             (\i ->
-                Ecs.Entity.spawn
+                Ecs.Entity.spawn ecsConfigSpec
                     >> Ecs.Entity.with ( positionSpec, ( i * 3, i * 5 ) )
                     >> Ecs.Entity.with ( velocitySpec, ( modBy 3 i + 1, modBy 5 i + 1 ) )
                     >> Tuple.second
