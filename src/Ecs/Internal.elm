@@ -1,5 +1,6 @@
 module Ecs.Internal exposing
-    ( EcsConfig(..)
+    ( Component(..)
+    , Config(..)
     , EntityId(..)
     , indexedFoldlArray
     , update
@@ -13,8 +14,12 @@ type EntityId
     = EntityId Int
 
 
-type EcsConfig
-    = EcsConfig ( Int, Set Int )
+type Config
+    = Config ( Int, Set Int )
+
+
+type Component data
+    = Component (Array (Maybe data))
 
 
 indexedFoldlArray : (EntityId -> a -> b -> b) -> b -> Array a -> b

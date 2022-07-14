@@ -4,6 +4,7 @@ import Browser
 import Browser.Events
 import Html exposing (..)
 import Html.Attributes exposing (style)
+import Ecs
 import Ecs.Component
 import Ecs.Entity
 import Ecs.Config
@@ -62,9 +63,9 @@ system spec1 spec2 w =
 
 
 type alias World =
-    { ecsConfig : Ecs.Config.Config
-    , position : Ecs.Component.Component ( Int, Int )
-    , velocity : Ecs.Component.Component ( Int, Int )
+    { ecsConfig : Ecs.Config
+    , position : Ecs.Component ( Int, Int )
+    , velocity : Ecs.Component ( Int, Int )
     , windowWidth : Int
     , windowHeight : Int
     }
@@ -100,11 +101,11 @@ spawn w_ =
             w_
 
 
-positionSpec : Ecs.Component.Spec ( Int, Int ) { world | position : Ecs.Component.Component ( Int, Int ) }
+positionSpec : Ecs.Component.Spec ( Int, Int ) { world | position : Ecs.Component ( Int, Int ) }
 positionSpec =
     Ecs.Component.Spec .position (\comps w -> { w | position = comps })
 
 
-velocitySpec : Ecs.Component.Spec ( Int, Int ) { world | velocity : Ecs.Component.Component ( Int, Int ) }
+velocitySpec : Ecs.Component.Spec ( Int, Int ) { world | velocity : Ecs.Component ( Int, Int ) }
 velocitySpec =
     Ecs.Component.Spec .velocity (\comps w -> { w | velocity = comps })

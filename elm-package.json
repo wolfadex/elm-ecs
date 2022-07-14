@@ -2,5 +2,11 @@
   "name": "wolfadex/elm-ecs",
   "summary": "Offline documentation previewer",
   "version": "1.0.0",
-  "exposed-modules": ["Ecs.Config", "Ecs.Entity", "Ecs.Component", "Ecs.System"]
+  "exposed-modules": [
+    "Ecs",
+    "Ecs.Config",
+    "Ecs.Entity",
+    "Ecs.Component",
+    "Ecs.System"
+  ]
 }

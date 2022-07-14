@@ -1,18 +1,17 @@
 module Ecs.Config exposing
-    ( Config
-    , Spec
+    ( Spec
     , init
     )
 
 {-|
 
-@docs Config
 @docs Spec
 @docs init
 
 -}
 
-import Ecs.Internal exposing (EcsConfig(..))
+import Ecs exposing (Config)
+import Ecs.Internal exposing (Config(..))
 import Set
 
 
@@ -20,16 +19,10 @@ import Set
 -}
 init : Config
 init =
-    EcsConfig ( 0, Set.empty )
+    Config ( 0, Set.empty )
 
 
-{-| Data that is used for managing and operating the ECS internally
--}
-type alias Config =
-    Ecs.Internal.EcsConfig
-
-
-{-| Similar to the `Ecs.Component.Spec` but for your [`Config`](#Config)
+{-| Similar to the `Ecs.Component.Spec` but for `Config`
 -}
 type alias Spec world =
     { get : world -> Config

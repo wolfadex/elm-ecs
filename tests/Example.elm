@@ -1,6 +1,7 @@
 module Example exposing (suite)
 
 import Dict
+import Ecs
 import Ecs.Component
 import Ecs.Config
 import Ecs.Entity
@@ -10,8 +11,8 @@ import Test exposing (Test)
 
 
 type alias World =
-    { ecsConfig : Ecs.Config.Config
-    , age : Ecs.Component.Component Int
+    { ecsConfig : Ecs.Config
+    , age : Ecs.Component Int
     }
 
 
