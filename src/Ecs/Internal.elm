@@ -1,14 +1,20 @@
 module Ecs.Internal exposing
-    ( EntityId(..)
+    ( EcsConfig(..)
+    , EntityId(..)
     , indexedFoldlArray
     , update
     )
 
 import Array exposing (Array)
+import Set exposing (Set)
 
 
 type EntityId
     = EntityId Int
+
+
+type EcsConfig
+    = EcsConfig ( Int, Set Int )
 
 
 indexedFoldlArray : (EntityId -> a -> b -> b) -> b -> Array a -> b

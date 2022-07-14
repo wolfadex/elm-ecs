@@ -97,8 +97,10 @@ spawn (EntityId entityId) value components =
         Array.set entityId (Just value) components
 
     else
-        Array.append components (Array.repeat (entityId - Array.length components) Nothing)
-            |> Array.push (Just value)
+        Array.push (Just value)
+            (Array.append components
+                (Array.repeat (entityId - Array.length components) Nothing)
+            )
 
 
 {-| Set the component at a particular index. Returns an updated `Component`. If the index is out of range, the `Component` is unaltered.
@@ -171,7 +173,16 @@ fromList =
 -}
 toList : Component a -> List ( EntityId, a )
 toList =
-    Ecs.Internal.indexedFoldlArray (\i a acc -> Maybe.map (\a_ -> ( i, a_ ) :: acc) a |> Maybe.withDefault acc) []
+    Ecs.Internal.indexedFoldlArray
+        (\i a acc ->
+            case a of
+                Nothing ->
+                    acc
+
+                Just a_ ->
+                    ( i, a_ ) :: acc
+        )
+        []
 
 
 {-| Create a `Component` from a dictionary.
@@ -193,7 +204,11 @@ toDict : Component a -> Dict Int a
 toDict =
     Ecs.Internal.indexedFoldlArray
         (\(EntityId entityId) a acc ->
-            Maybe.map (\a_ -> Dict.insert entityId a_ acc) a
-                |> Maybe.withDefault acc
+            case a of
+                Nothing ->
+                    acc
+
+                Just a_ ->
+                    Dict.insert entityId a_ acc
         )
         Dict.empty

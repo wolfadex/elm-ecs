@@ -2,6 +2,7 @@ module Example exposing (suite)
 
 import Dict
 import Ecs.Component
+import Ecs.Config
 import Ecs.Entity
 import Ecs.System
 import Expect
@@ -9,12 +10,12 @@ import Test exposing (Test)
 
 
 type alias World =
-    { ecsConfig : Ecs.Entity.EcsConfig
+    { ecsConfig : Ecs.Config.Config
     , age : Ecs.Component.Component Int
     }
 
 
-worldConfig : Ecs.Entity.EcsConfigSpec World
+worldConfig : Ecs.Config.Spec World
 worldConfig =
     { get = .ecsConfig
     , set = \config w -> { w | ecsConfig = config }
@@ -44,7 +45,7 @@ suite =
                 let
                     initialWorld : World
                     initialWorld =
-                        { ecsConfig = Ecs.Entity.initConfig
+                        { ecsConfig = Ecs.Config.init
                         , age = Ecs.Component.empty
                         }
 
@@ -61,7 +62,7 @@ suite =
                 let
                     initialWorld : World
                     initialWorld =
-                        { ecsConfig = Ecs.Entity.initConfig
+                        { ecsConfig = Ecs.Config.init
                         , age = Ecs.Component.empty
                         }
 

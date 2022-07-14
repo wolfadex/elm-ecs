@@ -61,7 +61,12 @@ foldl : (comp1 -> acc -> acc) -> Ecs.Component.Component comp1 -> acc -> acc
 foldl f comp1 acc_ =
     Array.foldl
         (\value acc ->
-            value |> Maybe.map (\a -> f a acc) |> Maybe.withDefault acc
+            case value of
+                Nothing ->
+                    acc
+
+                Just a ->
+                    f a acc
         )
         acc_
         comp1
@@ -76,7 +81,12 @@ indexedFoldl : (EntityId -> comp1 -> acc -> acc) -> Ecs.Component.Component comp
 indexedFoldl f comp1 acc_ =
     Ecs.Internal.indexedFoldlArray
         (\i value acc ->
-            value |> Maybe.map (\a -> f i a acc) |> Maybe.withDefault acc
+            case value of
+                Nothing ->
+                    acc
+
+                Just a ->
+                    f i a acc
         )
         acc_
         comp1
@@ -242,7 +252,7 @@ indexedFoldl5 f comp1 comp2 comp3 comp4 comp5 acc_ =
         comp1
 
 
-{-| Single component mapping, Same as`List.map` - only for `Ecs.Component.Component` inside `World`
+{-| Single component mapping, Same as`List.map` - only for `Ecs.Component.Set` inside `World`
 
     gravitySystem =
         Logic.System.step (Vec2.add gravity) accelerationSpec
@@ -250,7 +260,7 @@ indexedFoldl5 f comp1 comp2 comp3 comp4 comp5 acc_ =
 -}
 step : (comp -> comp) -> Ecs.Component.Spec comp world -> System world
 step f { get, set } world =
-    set (get world |> Array.map (Maybe.map f)) world
+    set (Array.map (Maybe.map f) (get world)) world
 
 
 {-| Helper for [`step2`](#step2)

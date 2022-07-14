@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (style)
 import Ecs.Component
 import Ecs.Entity
+import Ecs.Config
 import Ecs.System as System exposing (System, applyIf)
 
 
@@ -61,7 +62,7 @@ system spec1 spec2 w =
 
 
 type alias World =
-    { ecsConfig : Ecs.Entity.EcsConfig
+    { ecsConfig : Ecs.Config.Config
     , position : Ecs.Component.Component ( Int, Int )
     , velocity : Ecs.Component.Component ( Int, Int )
     , windowWidth : Int
@@ -71,7 +72,7 @@ type alias World =
 
 world : World
 world =
-    { ecsConfig = Ecs.Entity.initConfig
+    { ecsConfig = Ecs.Config.init
     , position = Ecs.Component.empty
     , velocity = Ecs.Component.empty
     , windowWidth = 800
@@ -79,7 +80,7 @@ world =
     }
 
 
-ecsConfigSpec : Ecs.Entity.EcsConfigSpec World
+ecsConfigSpec : Ecs.Config.Spec World
 ecsConfigSpec =
     { get = .ecsConfig
     , set = \ecsConfig w -> { w | ecsConfig = ecsConfig }

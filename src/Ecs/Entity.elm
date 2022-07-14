@@ -1,6 +1,6 @@
 module Ecs.Entity exposing
     ( EntityId, with, remove
-    , EcsConfig, EcsConfigSpec, initConfig, spawn
+    , spawn
     )
 
 {-| **Entity**: The entity is a general-purpose object. It only consists of a unique ID. They "tag every coarse game object as a separate item".
@@ -18,23 +18,9 @@ Example:
 
 import Array
 import Ecs.Component
-import Ecs.Internal exposing (EntityId(..))
-import Set exposing (Set)
-
-
-initConfig : EcsConfig
-initConfig =
-    EcsConfig ( 0, Set.empty )
-
-
-type EcsConfig
-    = EcsConfig ( Int, Set Int )
-
-
-type alias EcsConfigSpec world =
-    { get : world -> EcsConfig
-    , set : EcsConfig -> world -> world
-    }
+import Ecs.Config
+import Ecs.Internal exposing (EcsConfig(..), EntityId(..))
+import Set
 
 
 {-| The ID of an entity
@@ -45,12 +31,12 @@ type alias EntityId =
 
 {-| Start point for spawning an `Entity`
 
-    Ecs.Entity.create id world
+    Ecs.Entity.spawn ecsConfigSpec world
         |> Ecs.Entity.with ( positionSpec, positionComponent )
         |> Ecs.Entity.with ( velocitySpec, velocityComponent )
 
 -}
-spawn : EcsConfigSpec world -> world -> ( EntityId, world )
+spawn : Ecs.Config.Spec world -> world -> ( EntityId, world )
 spawn config world =
     let
         (EcsConfig ( nextId, availableIds )) =
@@ -86,7 +72,7 @@ remove spec ( (EntityId entityId) as id, world ) =
 
 {-| Set component to spawn with a new entity
 
-    Ecs.Entity.spawn world
+    Ecs.Entity.spawn ecsConfigSpec world
         |> Ecs.Entity.with ( positionSpec, positionComponent )
         |> Ecs.Entity.with ( velocitySpec, velocityComponent )
 
