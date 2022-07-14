@@ -5,6 +5,7 @@ module Ecs.Component exposing
     , map, filterMap
     , fromList, toList
     , fromDict, toDict
+    , EntityId
     )
 
 {-| **Component**: the raw data for one aspect of the object, and how it interacts with the world. "Labels the Entity as possessing this particular aspect".
@@ -18,7 +19,9 @@ Example:
 
     spec : Ecs.Component.Spec Velocity { world | v : Ecs.Component.Component Velocity }
     spec =
-        Ecs.Component.Spec .v (\comps world -> { world | v = comps })
+        { get = .v
+        , set = \comps world -> { world | v = comps }
+        }
 
     empty : Ecs.Component.Component Velocity
     empty =
@@ -42,6 +45,11 @@ Example:
 # Dict
 
 @docs fromDict, toDict
+
+
+# Todo
+
+@docs EntityId
 
 -}
 

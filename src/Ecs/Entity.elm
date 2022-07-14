@@ -1,18 +1,15 @@
-module Ecs.Entity exposing
-    ( EntityId, with, remove
-    , spawn
-    )
+module Ecs.Entity exposing (EntityId, spawn, with, remove)
 
 {-| **Entity**: The entity is a general-purpose object. It only consists of a unique ID. They "tag every coarse game object as a separate item".
 Example:
 
     import Ecs.Entity
 
-    Ecs.Entity.create id world
+    Ecs.Entity.spawn ecsConfigSpec world
         |> Ecs.Entity.with ( positionSpec, positionComponent )
         |> Ecs.Entity.with ( velocitySpec, velocityComponent )
 
-@docs EntityId, create, with, remove
+@docs EntityId, spawn, with, remove
 
 -}
 

@@ -277,7 +277,9 @@ Example:
 
     system =
         Logic.System.step2
-            (\( v, _ ) ( p, setP ) -> setP (Vec2.add v p))
+            (\( velocity, _ ) ( position, setPosition ) ->
+                setPosition (Vec2.add velocity position)
+            )
             velocitySpec
             positionSpec
 

@@ -6,8 +6,10 @@
     "example": "examples"
   },
   "scripts": {
+    "dev": "run-p dev:**",
     "dev:review": "elm-review --watch --fix",
-    "test": "elm-test"
+    "dev:test": "elm-test --watch",
+    "docs": "elm-doc-preview --port 1234"
   },
   "repository": {
     "type": "git",
@@ -20,7 +22,9 @@
   },
   "homepage": "https://github.com/wolfadex/elm-ecs#readme",
   "devDependencies": {
+    "elm-doc-preview": "^5.0.5",
     "elm-review": "^2.7.3",
-    "elm-test": "^0.19.1-revision9"
+    "elm-test": "^0.19.1-revision9",
+    "npm-run-all": "^4.1.5"
   }
 }

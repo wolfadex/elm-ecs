@@ -13,7 +13,7 @@ An entity is just a combination of components
 ```elm
 import Ecs.Entity
 
-Ecs.Entity.create id world
+Ecs.Entity.spawn ecsConfigSpec world
     |> Ecs.Entity.with ( positionSpec, ( 100, 100 ) )
     |> Ecs.Entity.with ( velocitySpec, ( -1, -1 ) )
 ```
