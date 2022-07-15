@@ -7,7 +7,7 @@ module Ecs.Component exposing
     , fromDict, toDict
     )
 
-{-| Example:
+{-|
 
     import Ecs.Component
 
