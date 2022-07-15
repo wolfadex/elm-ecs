@@ -15,13 +15,13 @@ module Ecs exposing
 import Ecs.Internal
 
 
-{-| The ID of an entity
+{-| The ID of an entity.
 -}
 type alias EntityId =
     Ecs.Internal.EntityId
 
 
-{-| Component storage, the main building block of the world
+{-| The raw data for one aspect of an `Entity`. I.e. labels the Entity as possessing this particular aspect.
 -}
 type alias Component data =
     Ecs.Internal.Component data

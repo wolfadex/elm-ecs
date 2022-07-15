@@ -93,7 +93,7 @@ spawn w_ =
     List.range 0 10
         |> List.foldl
             (\i ->
-                Ecs.Entity.spawn ecsConfigSpec
+                Ecs.Entity.create ecsConfigSpec
                     >> Ecs.Entity.with ( positionSpec, ( i * 3, i * 5 ) )
                     >> Ecs.Entity.with ( velocitySpec, ( modBy 3 i + 1, modBy 5 i + 1 ) )
                     >> Tuple.second

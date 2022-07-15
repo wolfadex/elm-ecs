@@ -1,15 +1,21 @@
-module Ecs.Entity exposing (spawn, with, remove)
+module Ecs.Entity exposing
+    ( create
+    , with
+    , remove
+    )
 
-{-| **Entity**: The entity is a general-purpose object. It only consists of a unique ID. They "tag every coarse game object as a separate item".
-Example:
+{-|
 
-    import Ecs.Entity
 
-    Ecs.Entity.spawn ecsConfigSpec world
-        |> Ecs.Entity.with ( positionSpec, positionComponent )
-        |> Ecs.Entity.with ( velocitySpec, velocityComponent )
+# Creation
 
-@docs spawn, with, remove
+@docs create
+
+
+# Build
+
+@docs with
+@docs remove
 
 -}
 
@@ -21,15 +27,13 @@ import Ecs.Internal exposing (Component(..), Config(..), EntityId(..))
 import Set
 
 
-{-| Start point for spawning an `Entity`
+{-| Creates a new
 
-    Ecs.Entity.spawn ecsConfigSpec world
-        |> Ecs.Entity.with ( positionSpec, positionComponent )
-        |> Ecs.Entity.with ( velocitySpec, velocityComponent )
+    Ecs.Entity.create ecsConfigSpec world
 
 -}
-spawn : Ecs.Config.Spec world -> world -> ( EntityId, world )
-spawn config world =
+create : Ecs.Config.Spec world -> world -> ( EntityId, world )
+create config world =
     let
         (Config ( nextId, availableIds )) =
             config.get world
@@ -46,15 +50,17 @@ spawn config world =
             )
 
 
-{-| Way to create `Entity` destruction functions, should pipe in all possible component specs.
-It also can be used to just disable (remove) some components from an entity.
+{-| For creating `Entity` destruction functions, should pipe in all possible component specs.
+It also can be used to remove some/select components from an entity.
 
-    remove =
+    deleteEntity : ( EntityId, World ) -> ( EntityId, World )
+    deleteEntity =
         Ecs.Entity.remove positionSpec
             >> Ecs.Entity.remove velocitySpec
 
+    newWorld : World
     newWorld =
-        remove ( id, world )
+        deleteEntity ( id, world )
 
 -}
 remove : Ecs.Component.Spec comp world -> ( EntityId, world ) -> ( EntityId, world )
@@ -73,9 +79,9 @@ remove spec ( (EntityId entityId) as id, world ) =
     )
 
 
-{-| Set component to spawn with a new entity
+{-| Adds a component to an entity
 
-    Ecs.Entity.spawn ecsConfigSpec world
+    Ecs.Entity.create ecsConfigSpec world
         |> Ecs.Entity.with ( positionSpec, positionComponent )
         |> Ecs.Entity.with ( velocitySpec, velocityComponent )
 
@@ -85,7 +91,7 @@ with ( spec, component ) ( entityID, world ) =
     let
         updatedComponents : Component comp
         updatedComponents =
-            Ecs.Component.spawn entityID
+            Ecs.Component.set entityID
                 component
                 (spec.get world)
 

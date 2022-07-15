@@ -7,7 +7,7 @@ module Ecs.System exposing
     , Acc2, Acc3, Acc4, Acc5
     )
 
-{-| **System**: main logic driver, that is used to stepping on each game-loop and update `World`
+{-|
 
 @docs System
 @docs update, step, step2, step3, step4, step5
@@ -21,7 +21,7 @@ module Ecs.System exposing
 @docs applyIf, applyMaybe
 
 
-# Todo
+# Internal helper types
 
 @docs Acc2, Acc3, Acc4, Acc5
 
@@ -46,15 +46,17 @@ type alias System world =
     world -> world
 
 
-{-| Reduce a `Ecs.Component` from the left.
+{-| Reduce an `Ecs.Component` from the left.
 
-Example count how much enemies left in the world:
+Example count how many enemies are left in the world:
 
-    enemySet =
+    enemyComponent : Ecs.Component.Component PlayerType
+    enemyComponent =
         enemySpec.get world
 
-    count =
-        foldl (\_ -> (+) 1) enemySet 0
+    remainingEnemyCount : Int
+    remainingEnemyCount =
+        Ecs.System.foldl (\_ -> (+) 1) enemyComponent 0
 
 -}
 foldl : (comp1 -> acc -> acc) -> Ecs.Component comp1 -> acc -> acc
@@ -72,7 +74,7 @@ foldl f (Component comp1) acc_ =
         comp1
 
 
-{-| Variant of `foldl` that passes the index of the current element to the step function.
+{-| Variant of `foldl` that passes the `EntityId` of the current element to the step function.
 
 `indexedFoldl` is to `foldl` as `List.indexedMap` is to `List.map`.
 
@@ -92,7 +94,7 @@ indexedFoldl f (Component comp1) acc_ =
         comp1
 
 
-{-| Step over all entities that have both components and reduce an `Ecs.Component`s from the left.
+{-| Step over all entities that have both components and reduce the `Component`s from the left.
 -}
 foldl2 : (comp1 -> comp2 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> acc -> acc
 foldl2 f (Component comp1) comp2 acc_ =
@@ -252,8 +254,9 @@ indexedFoldl5 f (Component comp1) comp2 comp3 comp4 comp5 acc_ =
         comp1
 
 
-{-| Single component mapping, Same as`List.map` - only for `Ecs.Component.Set` inside `World`
+{-| Single component mapping, similar to `List.map` - only for `Ecs.Component.Component` inside `world`
 
+    gravitySystem : Ecs.System.System world
     gravitySystem =
         Logic.System.step (Vec2.add gravity) accelerationSpec
 
@@ -279,7 +282,8 @@ type alias Acc2 a b =
 
 Example:
 
-    system =
+    moveSystem : Ecs.System.System World
+    moveSystem =
         Logic.System.step2
             (\( velocity, _ ) ( position, setPosition ) ->
                 setPosition (Vec2.add velocity position)
@@ -605,7 +609,7 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
         |> applyIf (result.d /= combined.d) (spec4.set result.d)
 
 
-{-| Just nice helper function to pipe into systems
+{-| A helper function to pipe into systems
 
     update msg world =
         world

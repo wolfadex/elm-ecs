@@ -15,7 +15,7 @@ import Ecs.Internal exposing (Config(..))
 import Set
 
 
-{-| Initializes your ECS setup
+{-| Initializes your `Ecs` setup
 -}
 init : Config
 init =

@@ -51,7 +51,7 @@ suite =
                         }
 
                     ( _, worldWithEntity ) =
-                        Ecs.Entity.spawn worldConfig initialWorld
+                        Ecs.Entity.create worldConfig initialWorld
                             |> Ecs.Entity.with ( ageSpec, 0 )
                 in
                 worldWithEntity
@@ -68,7 +68,7 @@ suite =
                         }
 
                     ( _, worldWithEntity ) =
-                        Ecs.Entity.spawn worldConfig initialWorld
+                        Ecs.Entity.create worldConfig initialWorld
                             |> Ecs.Entity.with ( ageSpec, 0 )
                 in
                 worldWithEntity

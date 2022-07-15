@@ -1,40 +1,48 @@
 module Ecs.Component exposing
-    ( Spec, empty
-    , set, spawn, remove
-    , get, get2, update
-    , map, filterMap
+    ( Spec
+    , empty, set, update, remove
+    , get, get2
+    , map, filter, indexedFilter
     , fromList, toList
     , fromDict, toDict
     )
 
-{-| **Component**: the raw data for one aspect of the object, and how it interacts with the world. "Labels the Entity as possessing this particular aspect".
+{-| Example:
 
-Example:
-
-    import Ecs
     import Ecs.Component
 
     type alias Velocity =
         { x : Float, y : Float }
 
-    spec : Ecs.Component.Spec Velocity { world | v : Ecs.Component Velocity }
-    spec =
-        { get = .v
-        , set = \comps world -> { world | v = comps }
+    velocitySpec : Ecs.Component.Spec Velocity { world | velocityComponent : Ecs.Component Velocity }
+    velocitySpec =
+        { get = .velocityComponent
+        , set = \component world -> { world | velocityComponent = component }
         }
 
-    empty : Ecs.Component.Component Velocity
-    empty =
+    initVelocity : Ecs.Component.Component Velocity
+    initVelocity =
         Ecs.Component.empty
 
-@docs Spec, empty
+
+# Create
+
+@docs Spec
 
 
-# Manipulations
+# Build
 
-@docs set, spawn, remove
-@docs get, get2, update
-@docs map, filterMap
+@docs empty, set, update, remove
+
+
+# Query
+
+@docs get, get2
+
+
+# Transform
+
+@docs map, filter, indexedFilter
 
 
 # List
@@ -48,13 +56,13 @@ Example:
 
 -}
 
-import Array exposing (Array)
+import Array
 import Dict exposing (Dict)
 import Ecs exposing (Component, EntityId)
 import Ecs.Internal exposing (Component(..), EntityId(..))
 
 
-{-| Component specification, how to get a `Component` from the world and set back into the world (mainly used by Systems)
+{-| Component specification, how to get a `Component` from the world and set it back into the world. Used when creating new entities and when running systems.
 -}
 type alias Spec comp world =
     { get : world -> Component comp
@@ -62,29 +70,24 @@ type alias Spec comp world =
     }
 
 
-{-| Create an empty `Component` - mostly used to init component sets in the world.
+{-| Create an empty `Component` - mostly used to init components in the world.
 -}
 empty : Component comp
 empty =
     Component Array.empty
 
 
-{-| Remove `Component` from an entity by `EntityId`, or return unchanged if the entity never has a `Component`.
+{-| Remove `Component` from an entity by `EntityId`, or return unchanged if the entity never had a `Component`.
 -}
 remove : EntityId -> Component a -> Component a
 remove (EntityId entityId) (Component components) =
     Component (Array.set entityId Nothing components)
 
 
-{-| Safe way to create a component, same as `set`, only if an index is out of range `Component` will be stretched.
-
-    test =
-        -- Just 5
-        empty |> spawn 5 10 |> get 5
-
+{-| Set the value of a component for an `EntityId`.
 -}
-spawn : EntityId -> a -> Component a -> Component a
-spawn (EntityId entityId) value (Component components) =
+set : EntityId -> a -> Component a -> Component a
+set (EntityId entityId) value (Component components) =
     Component
         (if entityId - Array.length components < 0 then
             Array.set entityId (Just value) components
@@ -95,18 +98,6 @@ spawn (EntityId entityId) value (Component components) =
                     (Array.repeat (entityId - Array.length components) Nothing)
                 )
         )
-
-
-{-| Set the component at a particular index. Returns an updated `Component`. If the index is out of range, the `Component` is unaltered.
-
-    test =
-        -- Nothing
-        empty |> set 5 10 |> get 5
-
--}
-set : EntityId -> a -> Component a -> Component a
-set (EntityId entityId) value (Component components) =
-    Component (Array.set entityId (Just value) components)
 
 
 {-| Get component for `EntityId`.
@@ -130,17 +121,25 @@ get2 entityId set1 set2 =
         (get entityId set2)
 
 
-{-| Filter out certain components.
+{-| Removes a component from an Entity
 -}
-filterMap : (comp -> Maybe comp) -> Component comp -> Component comp
-filterMap f (Component comps) =
+filter : (comp -> Maybe comp) -> Component comp -> Component comp
+filter f (Component comps) =
     Component (Array.map (Maybe.andThen f) comps)
 
 
-{-| Apply a function on every component in a `Component`.
+{-| Removes a component from an Entity
+-}
+indexedFilter : (EntityId -> comp -> Maybe comp) -> Component comp -> Component comp
+indexedFilter f (Component comps) =
+    Component (Array.indexedMap (\id -> Maybe.andThen (f (EntityId id))) comps)
 
-    map sqrt (fromList [ ( 0, 1 ), ( 1, 4 ), ( 2, 9 ) ])
-        |> (==) fromList [ ( 0, 1 ), ( 1, 2 ), ( 2, 3 ) ]
+
+{-| Apply a function on every entity with a `Component`.
+
+    Ecs.Component.fromList [ ( 0, 1 ), ( 1, 14 ), ( 2, 89 ) ]
+        |> Ecs.Component.map (\age -> age + 1)
+        |> (==) (Ecs.Component.fromList [ ( 0, 2 ), ( 1, 15 ), ( 2, 90 ) ])
 
 -}
 map : (comp -> comp) -> Component comp -> Component comp
@@ -162,7 +161,7 @@ update entityId f (Component comp) =
 -}
 fromList : List ( EntityId, a ) -> Component a
 fromList =
-    List.foldl (\( index, value ) components -> spawn index value components) empty
+    List.foldl (\( index, value ) components -> set index value components) empty
 
 
 {-| Convert a `Component` into an association list of id-component pairs, sorted by id.
@@ -185,17 +184,17 @@ toList (Component comp) =
         comp
 
 
-{-| Create a `Component` from a dictionary.
+{-| Create a `Component` from a `Dict`.
 
 **Note**: Useful for data serialization.
 
 -}
 fromDict : Dict Int a -> Component a
 fromDict =
-    Dict.foldl (\index value components -> spawn (EntityId index) value components) empty
+    Dict.foldl (\index value components -> set (EntityId index) value components) empty
 
 
-{-| Create a dictionary from a `Component`.
+{-| Create a `Dict` from a `Component`.
 
 **Note**: Useful for data deserialization.
 
