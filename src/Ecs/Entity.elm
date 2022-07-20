@@ -2,6 +2,7 @@ module Ecs.Entity exposing
     ( create
     , with
     , remove
+    , delete
     )
 
 {-|
@@ -16,6 +17,7 @@ module Ecs.Entity exposing
 
 @docs with
 @docs remove
+@docs delete
 
 -}
 
@@ -67,13 +69,27 @@ remove : Ecs.Component.Spec comp world -> ( EntityId, world ) -> ( EntityId, wor
 remove spec ( (EntityId entityId) as id, world ) =
     ( id
     , spec.set
-        (Component
-            (let
-                (Component comp) =
-                    spec.get world
-             in
-             Array.set entityId Nothing comp
-            )
+        (let
+            (Component comp) =
+                spec.get world
+         in
+         Component (Array.set entityId Nothing comp)
+        )
+        world
+    )
+
+
+{-| Finalizes the deletion of an Entity from the world. This should be used after `remove`.
+-}
+delete : Ecs.Config.Spec world -> ( EntityId, world ) -> ( EntityId, world )
+delete config ( (EntityId entityId) as id, world ) =
+    ( id
+    , config.set
+        (let
+            (Config ( nextId, availableIds )) =
+                config.get world
+         in
+         Config ( nextId, Set.insert entityId availableIds )
         )
         world
     )
