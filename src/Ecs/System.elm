@@ -1,6 +1,6 @@
 module Ecs.System exposing
     ( System
-    , update, step, step2, step3, step4, step5
+    , update, map, map2, map3, map4, map5
     , foldl, foldl2, foldl3, foldl4, foldl5
     , indexedFoldl, indexedFoldl2, indexedFoldl3, indexedFoldl4, indexedFoldl5
     , applyIf, applyMaybe
@@ -10,7 +10,7 @@ module Ecs.System exposing
 {-|
 
 @docs System
-@docs update, step, step2, step3, step4, step5
+@docs update, map, map2, map3, map4, map5
 
 @docs foldl, foldl2, foldl3, foldl4, foldl5
 @docs indexedFoldl, indexedFoldl2, indexedFoldl3, indexedFoldl4, indexedFoldl5
@@ -66,7 +66,7 @@ foldl f (Component comp) acc_ =
         comp
 
 
-{-| Variant of `foldl` that passes the `Entity` of the current element to the step function.
+{-| Variant of `foldl` that passes the `Entity` of the current element to the map function.
 
 `indexedFoldl` is to `foldl` as `List.indexedMap` is to `List.map`.
 
@@ -78,7 +78,7 @@ indexedFoldl f (Component comp) acc_ =
         comp
 
 
-{-| Step over all entities that have both components and reduce the `Component`s from the left.
+{-| Map over all entities that have both components and reduce the `Component`s from the left.
 -}
 foldl2 : (comp1 -> comp2 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> acc -> acc
 foldl2 f comp1 comp2 acc_ =
@@ -234,11 +234,11 @@ indexedFoldl5 f comp1 comp2 comp3 comp4 comp5 acc_ =
 
     gravitySystem : Ecs.System.System world
     gravitySystem =
-        Logic.System.step (Vec2.add gravity) accelerationSpec
+        Logic.System.map (Vec2.add gravity) accelerationSpec
 
 -}
-step : (comp -> comp) -> Ecs.Component.Spec comp world -> System world
-step f { get, set } world =
+map : (comp -> comp) -> Ecs.Component.Spec comp world -> System world
+map f { get, set } world =
     let
         (Component comp) =
             get world
@@ -246,7 +246,7 @@ step f { get, set } world =
     set (Component (Dict.map (\_ c -> f c) comp)) world
 
 
-{-| Helper for [`step2`](#step2)
+{-| Helper for [`map2`](#map2)
 -}
 type alias Acc2 a b =
     { a : Ecs.Component a
@@ -254,13 +254,13 @@ type alias Acc2 a b =
     }
 
 
-{-| Step over all entities that have both components.
+{-| Map over all entities that have both components.
 
 Example:
 
     moveSystem : Ecs.System.System World
     moveSystem =
-        Logic.System.step2
+        Logic.System.map2
             (\( velocity, _ ) ( position, setPosition ) ->
                 setPosition (Vec2.add velocity position)
             )
@@ -268,7 +268,7 @@ Example:
             positionSpec
 
 -}
-step2 :
+map2 :
     (( a, a -> System (Acc2 a b) )
      -> ( b, b -> System (Acc2 a b) )
      -> System (Acc2 a b)
@@ -276,7 +276,7 @@ step2 :
     -> Ecs.Component.Spec a world
     -> Ecs.Component.Spec b world
     -> System world
-step2 f spec1 spec2 world =
+map2 f spec1 spec2 world =
     let
         set1 : Entity -> a -> System (Acc2 a b)
         set1 (Entity i) a acc =
@@ -316,7 +316,7 @@ step2 f spec1 spec2 world =
         |> applyIf (result.b /= combined.b) (spec2.set result.b)
 
 
-{-| Helper for [`step3`](#step3)
+{-| Helper for [`map3`](#map3)
 -}
 type alias Acc3 a b c =
     { a : Ecs.Component a
@@ -325,9 +325,9 @@ type alias Acc3 a b c =
     }
 
 
-{-| Same as [`step2`](#step2) only with 3 components
+{-| Same as [`map2`](#map2) only with 3 components
 -}
-step3 :
+map3 :
     (( a, a -> System (Acc3 a b c) )
      -> ( b, b -> System (Acc3 a b c) )
      -> ( c, c -> System (Acc3 a b c) )
@@ -337,7 +337,7 @@ step3 :
     -> Ecs.Component.Spec b world
     -> Ecs.Component.Spec c world
     -> System world
-step3 f spec1 spec2 spec3 world =
+map3 f spec1 spec2 spec3 world =
     let
         set1 : Entity -> a -> System (Acc3 a b c)
         set1 (Entity i) a acc =
@@ -389,7 +389,7 @@ step3 f spec1 spec2 spec3 world =
         |> applyIf (result.c /= combined.c) (spec3.set result.c)
 
 
-{-| Helper for [`step4`](#step4)
+{-| Helper for [`map4`](#map4)
 -}
 type alias Acc4 a b c d =
     { a : Ecs.Component a
@@ -399,9 +399,9 @@ type alias Acc4 a b c d =
     }
 
 
-{-| Same as [`step2`](#step2) only with 4 components
+{-| Same as [`map2`](#map2) only with 4 components
 -}
-step4 :
+map4 :
     (( a, a -> System (Acc4 a b c d) )
      -> ( b, b -> System (Acc4 a b c d) )
      -> ( c, c -> System (Acc4 a b c d) )
@@ -413,7 +413,7 @@ step4 :
     -> Ecs.Component.Spec c world
     -> Ecs.Component.Spec d world
     -> System world
-step4 f spec1 spec2 spec3 spec4 world =
+map4 f spec1 spec2 spec3 spec4 world =
     let
         set1 : Entity -> a -> System (Acc4 a b c d)
         set1 (Entity i) a acc =
@@ -476,7 +476,7 @@ step4 f spec1 spec2 spec3 spec4 world =
         |> applyIf (result.d /= combined.d) (spec4.set result.d)
 
 
-{-| Helper for [`step5`](#step5)
+{-| Helper for [`map5`](#map5)
 -}
 type alias Acc5 a b c d e =
     { a : Ecs.Component a
@@ -487,9 +487,9 @@ type alias Acc5 a b c d e =
     }
 
 
-{-| Same as [`step2`](#step2) only with 5 components
+{-| Same as [`map2`](#map2) only with 5 components
 -}
-step5 :
+map5 :
     (( a, a -> System (Acc5 a b c d e) )
      -> ( b, b -> System (Acc5 a b c d e) )
      -> ( c, c -> System (Acc5 a b c d e) )
@@ -503,7 +503,7 @@ step5 :
     -> Ecs.Component.Spec d world
     -> Ecs.Component.Spec e world
     -> System world
-step5 f spec1 spec2 spec3 spec4 spec5 world =
+map5 f spec1 spec2 spec3 spec4 spec5 world =
     let
         set1 : Entity -> a -> System (Acc5 a b c d e)
         set1 (Entity i) a acc =
