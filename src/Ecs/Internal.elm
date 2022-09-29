@@ -2,7 +2,6 @@ module Ecs.Internal exposing
     ( Component(..)
     , Config(..)
     , Entity(..)
-    , indexedFoldl
     , update
     )
 
@@ -19,16 +18,6 @@ type Config
 
 type Component data
     = Component (Dict ( Int, Int ) data)
-
-
-indexedFoldl : (Entity -> a -> b -> b) -> b -> Dict ( Int, Int ) a -> b
-indexedFoldl func acc entities =
-    let
-        step : ( Int, Int ) -> a -> b -> b
-        step id a thisAcc =
-            func (Entity id) a thisAcc
-    in
-    Dict.foldl step acc entities
 
 
 update : Entity -> (a -> a) -> Dict ( Int, Int ) a -> Dict ( Int, Int ) a

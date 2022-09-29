@@ -27,7 +27,7 @@ module Ecs.System exposing
 
 -}
 
-import Dict exposing (Dict)
+import Dict
 import Ecs exposing (Entity)
 import Ecs.Component
 import Ecs.Internal exposing (Component(..), Entity(..))
@@ -73,65 +73,67 @@ foldl f (Component comp) acc_ =
 -}
 indexedFoldl : (Entity -> comp -> acc -> acc) -> Ecs.Component comp -> acc -> acc
 indexedFoldl f (Component comp) acc_ =
-    Ecs.Internal.indexedFoldl f acc_ comp
+    Dict.foldl (\id a thisAcc -> f (Entity id) a thisAcc)
+        acc_
+        comp
 
 
 {-| Step over all entities that have both components and reduce the `Component`s from the left.
 -}
 foldl2 : (comp1 -> comp2 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> acc -> acc
-foldl2 f (Component comp1) comp2 acc_ =
-    Ecs.Internal.indexedFoldl
+foldl2 f comp1 comp2 acc_ =
+    indexedFoldl
         (\entity a acc ->
             Maybe.map (\b -> f a b acc)
                 (Ecs.Component.get entity comp2)
                 |> Maybe.withDefault acc
         )
-        acc_
         comp1
+        acc_
 
 
 {-| Same as [`indexedFoldl`](#indexedFoldl) only with 2 components
 -}
 indexedFoldl2 : (Entity -> comp1 -> comp2 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> acc -> acc
-indexedFoldl2 f (Component comp1) comp2 acc_ =
-    Ecs.Internal.indexedFoldl
+indexedFoldl2 f comp1 comp2 acc_ =
+    indexedFoldl
         (\entity a acc ->
             Maybe.map (\b -> f entity a b acc)
                 (Ecs.Component.get entity comp2)
                 |> Maybe.withDefault acc
         )
-        acc_
         comp1
+        acc_
 
 
 {-| Same as [`foldl2`](#foldl2) only with 3 components
 -}
 foldl3 : (comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> Ecs.Component comp3 -> acc -> acc
-foldl3 f (Component comp1) comp2 comp3 acc_ =
-    Ecs.Internal.indexedFoldl
+foldl3 f comp1 comp2 comp3 acc_ =
+    indexedFoldl
         (\n a acc ->
             Maybe.map2 (\b c -> f a b c acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 |> Maybe.withDefault acc
         )
-        acc_
         comp1
+        acc_
 
 
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 3 components
 -}
 indexedFoldl3 : (Entity -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> Ecs.Component comp3 -> acc -> acc
-indexedFoldl3 f (Component comp1) comp2 comp3 acc_ =
-    Ecs.Internal.indexedFoldl
+indexedFoldl3 f comp1 comp2 comp3 acc_ =
+    indexedFoldl
         (\n a acc ->
             Maybe.map2 (\b c -> f n a b c acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 |> Maybe.withDefault acc
         )
-        acc_
         comp1
+        acc_
 
 
 {-| Same as [`foldl2`](#foldl2) only with 4 components
@@ -144,8 +146,8 @@ foldl4 :
     -> Ecs.Component comp4
     -> acc
     -> acc
-foldl4 f (Component comp1) comp2 comp3 comp4 acc_ =
-    Ecs.Internal.indexedFoldl
+foldl4 f comp1 comp2 comp3 comp4 acc_ =
+    indexedFoldl
         (\n a acc ->
             Maybe.map3 (\b c d -> f a b c d acc)
                 (Ecs.Component.get n comp2)
@@ -153,8 +155,8 @@ foldl4 f (Component comp1) comp2 comp3 comp4 acc_ =
                 (Ecs.Component.get n comp4)
                 |> Maybe.withDefault acc
         )
-        acc_
         comp1
+        acc_
 
 
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 4 components
@@ -167,8 +169,8 @@ indexedFoldl4 :
     -> Ecs.Component comp4
     -> acc
     -> acc
-indexedFoldl4 f (Component comp1) comp2 comp3 comp4 acc_ =
-    Ecs.Internal.indexedFoldl
+indexedFoldl4 f comp1 comp2 comp3 comp4 acc_ =
+    indexedFoldl
         (\n a acc ->
             Maybe.map3 (\b c d -> f n a b c d acc)
                 (Ecs.Component.get n comp2)
@@ -176,8 +178,8 @@ indexedFoldl4 f (Component comp1) comp2 comp3 comp4 acc_ =
                 (Ecs.Component.get n comp4)
                 |> Maybe.withDefault acc
         )
-        acc_
         comp1
+        acc_
 
 
 {-| Same as [`foldl2`](#foldl2) only with 5 components
@@ -190,8 +192,8 @@ foldl5 :
     -> Ecs.Component comp4
     -> acc
     -> acc
-foldl5 f (Component comp1) comp2 comp3 comp4 acc_ =
-    Ecs.Internal.indexedFoldl
+foldl5 f comp1 comp2 comp3 comp4 acc_ =
+    indexedFoldl
         (\n a acc ->
             Maybe.map3 (\b c d -> f a b c d acc)
                 (Ecs.Component.get n comp2)
@@ -199,8 +201,8 @@ foldl5 f (Component comp1) comp2 comp3 comp4 acc_ =
                 (Ecs.Component.get n comp4)
                 |> Maybe.withDefault acc
         )
-        acc_
         comp1
+        acc_
 
 
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 5 components
@@ -214,8 +216,8 @@ indexedFoldl5 :
     -> Ecs.Component comp5
     -> acc
     -> acc
-indexedFoldl5 f (Component comp1) comp2 comp3 comp4 comp5 acc_ =
-    Ecs.Internal.indexedFoldl
+indexedFoldl5 f comp1 comp2 comp3 comp4 comp5 acc_ =
+    indexedFoldl
         (\n a acc ->
             Maybe.map4 (\b c d e -> f n a b c d e acc)
                 (Ecs.Component.get n comp2)
@@ -224,8 +226,8 @@ indexedFoldl5 f (Component comp1) comp2 comp3 comp4 comp5 acc_ =
                 (Ecs.Component.get n comp5)
                 |> Maybe.withDefault acc
         )
-        acc_
         comp1
+        acc_
 
 
 {-| Single component mapping, similar to `List.map` - only for `Ecs.Component.Component` inside `world`
@@ -300,14 +302,14 @@ step2 f spec1 spec2 world =
 
         result : Acc2 a b
         result =
-            Ecs.Internal.indexedFoldl
+            indexedFoldl
                 (\n a acc ->
                     Maybe.map (\b -> f ( a, set1 n ) ( b, set2 n ) acc)
                         (Ecs.Component.get n acc.b)
                         |> Maybe.withDefault acc
                 )
+                combined.a
                 combined
-                (compToDict combined.a)
     in
     world
         |> applyIf (result.a /= combined.a) (spec1.set result.a)
@@ -370,7 +372,7 @@ step3 f spec1 spec2 spec3 world =
 
         result : Acc3 a b c
         result =
-            Ecs.Internal.indexedFoldl
+            indexedFoldl
                 (\n a acc ->
                     Maybe.map2
                         (\b c -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) acc)
@@ -378,8 +380,8 @@ step3 f spec1 spec2 spec3 world =
                         (Ecs.Component.get n acc.c)
                         |> Maybe.withDefault acc
                 )
+                combined.a
                 combined
-                (compToDict combined.a)
     in
     world
         |> applyIf (result.a /= combined.a) (spec1.set result.a)
@@ -455,7 +457,7 @@ step4 f spec1 spec2 spec3 spec4 world =
 
         result : Acc4 a b c d
         result =
-            Ecs.Internal.indexedFoldl
+            indexedFoldl
                 (\n a acc ->
                     Maybe.map3
                         (\b c d -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) ( d, set4 n ) acc)
@@ -464,8 +466,8 @@ step4 f spec1 spec2 spec3 spec4 world =
                         (Ecs.Component.get n acc.d)
                         |> Maybe.withDefault acc
                 )
+                combined.a
                 combined
-                (compToDict combined.a)
     in
     world
         |> applyIf (result.a /= combined.a) (spec1.set result.a)
@@ -483,11 +485,6 @@ type alias Acc5 a b c d e =
     , d : Ecs.Component d
     , e : Ecs.Component e
     }
-
-
-compToDict : Component data -> Dict ( Int, Int ) data
-compToDict (Component data) =
-    data
 
 
 {-| Same as [`step2`](#step2) only with 5 components
@@ -559,7 +556,7 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
 
         result : Acc5 a b c d e
         result =
-            Ecs.Internal.indexedFoldl
+            indexedFoldl
                 (\n a acc ->
                     Maybe.map4
                         (\b c d e -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) ( d, set4 n ) ( e, set5 n ) acc)
@@ -569,8 +566,8 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
                         (Ecs.Component.get n acc.e)
                         |> Maybe.withDefault acc
                 )
+                combined.a
                 combined
-                (compToDict combined.a)
     in
     world
         |> applyIf (result.a /= combined.a) (spec1.set result.a)
