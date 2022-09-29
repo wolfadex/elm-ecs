@@ -12,14 +12,13 @@ module Ecs.Config exposing
 
 import Ecs exposing (Config)
 import Ecs.Internal exposing (Config(..))
-import Set
 
 
 {-| Initializes your `Ecs` setup
 -}
 init : Config
 init =
-    Config ( 0, Set.empty )
+    Config ( 0, [] )
 
 
 {-| Similar to the `Ecs.Component.Spec` but for `Config`

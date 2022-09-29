@@ -56,10 +56,9 @@ module Ecs.Component exposing
 
 -}
 
-import Array
 import Dict exposing (Dict)
-import Ecs exposing (Component, EntityId)
-import Ecs.Internal exposing (Component(..), EntityId(..))
+import Ecs exposing (Component, Entity)
+import Ecs.Internal exposing (Component(..), Entity(..))
 
 
 {-| Component specification, how to get a `Component` from the world and set it back into the world. Used when creating new entities and when running systems.
@@ -74,65 +73,59 @@ type alias Spec comp world =
 -}
 empty : Component comp
 empty =
-    Component Array.empty
+    Component Dict.empty
 
 
-{-| Remove `Component` from an entity by `EntityId`, or return unchanged if the entity never had a `Component`.
+{-| Remove `Component` from an entity by `Entity`, or return unchanged if the entity never had a `Component`.
 -}
-remove : EntityId -> Component a -> Component a
-remove (EntityId entityId) (Component components) =
-    Component (Array.set entityId Nothing components)
+remove : Entity -> Component a -> Component a
+remove (Entity id) (Component components) =
+    Component (Dict.remove id components)
 
 
-{-| Set the value of a component for an `EntityId`.
+{-| Set the value of a component for an `Entity`.
 -}
-set : EntityId -> a -> Component a -> Component a
-set (EntityId entityId) value (Component components) =
+set : Entity -> a -> Component a -> Component a
+set (Entity id) value (Component components) =
+    Component (Dict.insert id value components)
+
+
+{-| Get component for `Entity`.
+-}
+get : Entity -> Component comp -> Maybe comp
+get (Entity id) (Component component) =
+    Dict.get id component
+
+
+{-| Get components Tuple for `Entity`.
+-}
+get2 : Entity -> Component comp -> Component comp2 -> Maybe ( comp, comp2 )
+get2 entity set1 set2 =
+    Maybe.map2 Tuple.pair
+        (get entity set1)
+        (get entity set2)
+
+
+{-| Removes a component from an Entity
+-}
+filter : (comp -> Bool) -> Component comp -> Component comp
+filter f (Component comps) =
     Component
-        (if entityId - Array.length components < 0 then
-            Array.set entityId (Just value) components
-
-         else
-            Array.push (Just value)
-                (Array.append components
-                    (Array.repeat (entityId - Array.length components) Nothing)
-                )
+        (Dict.filter
+            (\_ comp -> f comp)
+            comps
         )
 
 
-{-| Get component for `EntityId`.
--}
-get : EntityId -> Component comp -> Maybe comp
-get (EntityId entityId) (Component component) =
-    case Array.get entityId component of
-        Nothing ->
-            Nothing
-
-        Just a ->
-            a
-
-
-{-| Get components Tuple for `EntityId`.
--}
-get2 : EntityId -> Component comp -> Component comp2 -> Maybe ( comp, comp2 )
-get2 entityId set1 set2 =
-    Maybe.map2 Tuple.pair
-        (get entityId set1)
-        (get entityId set2)
-
-
 {-| Removes a component from an Entity
 -}
-filter : (comp -> Maybe comp) -> Component comp -> Component comp
-filter f (Component comps) =
-    Component (Array.map (Maybe.andThen f) comps)
-
-
-{-| Removes a component from an Entity
--}
-indexedFilter : (EntityId -> comp -> Maybe comp) -> Component comp -> Component comp
+indexedFilter : (Entity -> comp -> Bool) -> Component comp -> Component comp
 indexedFilter f (Component comps) =
-    Component (Array.indexedMap (\id -> Maybe.andThen (f (EntityId id))) comps)
+    Component
+        (Dict.filter
+            (\id comp -> f (Entity id) comp)
+            comps
+        )
 
 
 {-| Apply a function on every entity with a `Component`.
@@ -144,14 +137,14 @@ indexedFilter f (Component comps) =
 -}
 map : (comp -> comp) -> Component comp -> Component comp
 map f (Component comps) =
-    Component (Array.map (Maybe.map f) comps)
+    Component (Dict.map (\_ comp -> f comp) comps)
 
 
-{-| Update Component by `EntityId`.
+{-| Update Component by `Entity`.
 -}
-update : EntityId -> (comp -> comp) -> Component comp -> Component comp
-update entityId f (Component comp) =
-    Component (Ecs.Internal.update entityId (Maybe.map f) comp)
+update : Entity -> (comp -> comp) -> Component comp -> Component comp
+update entity f (Component comp) =
+    Component (Ecs.Internal.update entity f comp)
 
 
 {-| Create a `Component` from a `List`.
@@ -159,9 +152,11 @@ update entityId f (Component comp) =
 **Note**: Useful for data serialization.
 
 -}
-fromList : List ( EntityId, a ) -> Component a
-fromList =
-    List.foldl (\( index, value ) components -> set index value components) empty
+fromList : List ( ( Int, Int ), a ) -> Component a
+fromList list =
+    list
+        |> Dict.fromList
+        |> Component
 
 
 {-| Convert a `Component` into an association list of id-component pairs, sorted by id.
@@ -169,19 +164,9 @@ fromList =
 **Note**: Useful for data deserialization.
 
 -}
-toList : Component a -> List ( EntityId, a )
+toList : Component a -> List ( ( Int, Int ), a )
 toList (Component comp) =
-    Ecs.Internal.indexedFoldlArray
-        (\i a acc ->
-            case a of
-                Nothing ->
-                    acc
-
-                Just a_ ->
-                    ( i, a_ ) :: acc
-        )
-        []
-        comp
+    Dict.toList comp
 
 
 {-| Create a `Component` from a `Dict`.
@@ -189,9 +174,9 @@ toList (Component comp) =
 **Note**: Useful for data serialization.
 
 -}
-fromDict : Dict Int a -> Component a
+fromDict : Dict ( Int, Int ) a -> Component a
 fromDict =
-    Dict.foldl (\index value components -> set (EntityId index) value components) empty
+    Component
 
 
 {-| Create a `Dict` from a `Component`.
@@ -199,16 +184,6 @@ fromDict =
 **Note**: Useful for data deserialization.
 
 -}
-toDict : Component a -> Dict Int a
+toDict : Component a -> Dict ( Int, Int ) a
 toDict (Component comp) =
-    Ecs.Internal.indexedFoldlArray
-        (\(EntityId entityId) a acc ->
-            case a of
-                Nothing ->
-                    acc
-
-                Just a_ ->
-                    Dict.insert entityId a_ acc
-        )
-        Dict.empty
-        comp
+    comp

@@ -27,10 +27,10 @@ module Ecs.System exposing
 
 -}
 
-import Array exposing (Array)
-import Ecs exposing (EntityId)
+import Dict exposing (Dict)
+import Ecs exposing (Entity)
 import Ecs.Component
-import Ecs.Internal exposing (Component(..), EntityId(..))
+import Ecs.Internal exposing (Component(..), Entity(..))
 
 
 {-| Update whole `Ecs.Component`
@@ -59,50 +59,31 @@ Example count how many enemies are left in the world:
         Ecs.System.foldl (\_ -> (+) 1) enemyComponent 0
 
 -}
-foldl : (comp1 -> acc -> acc) -> Ecs.Component comp1 -> acc -> acc
-foldl f (Component comp1) acc_ =
-    Array.foldl
-        (\value acc ->
-            case value of
-                Nothing ->
-                    acc
-
-                Just a ->
-                    f a acc
-        )
+foldl : (comp -> acc -> acc) -> Ecs.Component comp -> acc -> acc
+foldl f (Component comp) acc_ =
+    Dict.foldl (\_ a acc -> f a acc)
         acc_
-        comp1
+        comp
 
 
-{-| Variant of `foldl` that passes the `EntityId` of the current element to the step function.
+{-| Variant of `foldl` that passes the `Entity` of the current element to the step function.
 
 `indexedFoldl` is to `foldl` as `List.indexedMap` is to `List.map`.
 
 -}
-indexedFoldl : (EntityId -> comp1 -> acc -> acc) -> Ecs.Component comp1 -> acc -> acc
-indexedFoldl f (Component comp1) acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\i value acc ->
-            case value of
-                Nothing ->
-                    acc
-
-                Just a ->
-                    f i a acc
-        )
-        acc_
-        comp1
+indexedFoldl : (Entity -> comp -> acc -> acc) -> Ecs.Component comp -> acc -> acc
+indexedFoldl f (Component comp) acc_ =
+    Ecs.Internal.indexedFoldl f acc_ comp
 
 
 {-| Step over all entities that have both components and reduce the `Component`s from the left.
 -}
 foldl2 : (comp1 -> comp2 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> acc -> acc
 foldl2 f (Component comp1) comp2 acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\n value acc ->
-            Maybe.map2 (\a b -> f a b acc)
-                value
-                (Ecs.Component.get n comp2)
+    Ecs.Internal.indexedFoldl
+        (\entity a acc ->
+            Maybe.map (\b -> f a b acc)
+                (Ecs.Component.get entity comp2)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -111,13 +92,12 @@ foldl2 f (Component comp1) comp2 acc_ =
 
 {-| Same as [`indexedFoldl`](#indexedFoldl) only with 2 components
 -}
-indexedFoldl2 : (EntityId -> comp1 -> comp2 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> acc -> acc
+indexedFoldl2 : (Entity -> comp1 -> comp2 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> acc -> acc
 indexedFoldl2 f (Component comp1) comp2 acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\n value acc ->
-            Maybe.map2 (\a b -> f n a b acc)
-                value
-                (Ecs.Component.get n comp2)
+    Ecs.Internal.indexedFoldl
+        (\entity a acc ->
+            Maybe.map (\b -> f entity a b acc)
+                (Ecs.Component.get entity comp2)
                 |> Maybe.withDefault acc
         )
         acc_
@@ -128,10 +108,9 @@ indexedFoldl2 f (Component comp1) comp2 acc_ =
 -}
 foldl3 : (comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> Ecs.Component comp3 -> acc -> acc
 foldl3 f (Component comp1) comp2 comp3 acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\n value acc ->
-            Maybe.map3 (\a b c -> f a b c acc)
-                value
+    Ecs.Internal.indexedFoldl
+        (\n a acc ->
+            Maybe.map2 (\b c -> f a b c acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 |> Maybe.withDefault acc
@@ -142,12 +121,11 @@ foldl3 f (Component comp1) comp2 comp3 acc_ =
 
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 3 components
 -}
-indexedFoldl3 : (EntityId -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> Ecs.Component comp3 -> acc -> acc
+indexedFoldl3 : (Entity -> comp1 -> comp2 -> comp3 -> acc -> acc) -> Ecs.Component comp1 -> Ecs.Component comp2 -> Ecs.Component comp3 -> acc -> acc
 indexedFoldl3 f (Component comp1) comp2 comp3 acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\n value acc ->
-            Maybe.map3 (\a b c -> f n a b c acc)
-                value
+    Ecs.Internal.indexedFoldl
+        (\n a acc ->
+            Maybe.map2 (\b c -> f n a b c acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 |> Maybe.withDefault acc
@@ -167,10 +145,9 @@ foldl4 :
     -> acc
     -> acc
 foldl4 f (Component comp1) comp2 comp3 comp4 acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\n value acc ->
-            Maybe.map4 (\a b c d -> f a b c d acc)
-                value
+    Ecs.Internal.indexedFoldl
+        (\n a acc ->
+            Maybe.map3 (\b c d -> f a b c d acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 (Ecs.Component.get n comp4)
@@ -183,7 +160,7 @@ foldl4 f (Component comp1) comp2 comp3 comp4 acc_ =
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 4 components
 -}
 indexedFoldl4 :
-    (EntityId -> comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
+    (Entity -> comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
     -> Ecs.Component comp1
     -> Ecs.Component comp2
     -> Ecs.Component comp3
@@ -191,10 +168,9 @@ indexedFoldl4 :
     -> acc
     -> acc
 indexedFoldl4 f (Component comp1) comp2 comp3 comp4 acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\n value acc ->
-            Maybe.map4 (\a b c d -> f n a b c d acc)
-                value
+    Ecs.Internal.indexedFoldl
+        (\n a acc ->
+            Maybe.map3 (\b c d -> f n a b c d acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 (Ecs.Component.get n comp4)
@@ -215,10 +191,9 @@ foldl5 :
     -> acc
     -> acc
 foldl5 f (Component comp1) comp2 comp3 comp4 acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\n value acc ->
-            Maybe.map4 (\a b c d -> f a b c d acc)
-                value
+    Ecs.Internal.indexedFoldl
+        (\n a acc ->
+            Maybe.map3 (\b c d -> f a b c d acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 (Ecs.Component.get n comp4)
@@ -231,7 +206,7 @@ foldl5 f (Component comp1) comp2 comp3 comp4 acc_ =
 {-| Same as [`indexedFoldl2`](#indexedFoldl2) only with 5 components
 -}
 indexedFoldl5 :
-    (EntityId -> comp1 -> comp2 -> comp3 -> comp4 -> comp5 -> acc -> acc)
+    (Entity -> comp1 -> comp2 -> comp3 -> comp4 -> comp5 -> acc -> acc)
     -> Ecs.Component comp1
     -> Ecs.Component comp2
     -> Ecs.Component comp3
@@ -240,10 +215,9 @@ indexedFoldl5 :
     -> acc
     -> acc
 indexedFoldl5 f (Component comp1) comp2 comp3 comp4 comp5 acc_ =
-    Ecs.Internal.indexedFoldlArray
-        (\n value acc ->
-            Maybe.map5 (\a b c d e -> f n a b c d e acc)
-                value
+    Ecs.Internal.indexedFoldl
+        (\n a acc ->
+            Maybe.map4 (\b c d e -> f n a b c d e acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 (Ecs.Component.get n comp4)
@@ -267,7 +241,7 @@ step f { get, set } world =
         (Component comp) =
             get world
     in
-    set (Component (Array.map (Maybe.map f) comp)) world
+    set (Component (Dict.map (\_ c -> f c) comp)) world
 
 
 {-| Helper for [`step2`](#step2)
@@ -302,21 +276,21 @@ step2 :
     -> System world
 step2 f spec1 spec2 world =
     let
-        set1 : EntityId -> a -> System (Acc2 a b)
-        set1 (EntityId i) a acc =
+        set1 : Entity -> a -> System (Acc2 a b)
+        set1 (Entity i) a acc =
             let
                 (Component comp) =
                     acc.a
             in
-            { acc | a = Component (Array.set i (Just a) comp) }
+            { acc | a = Component (Dict.insert i a comp) }
 
-        set2 : EntityId -> b -> System (Acc2 a b)
-        set2 (EntityId i) b acc =
+        set2 : Entity -> b -> System (Acc2 a b)
+        set2 (Entity i) b acc =
             let
                 (Component comp) =
                     acc.b
             in
-            { acc | b = Component (Array.set i (Just b) comp) }
+            { acc | b = Component (Dict.insert i b comp) }
 
         combined : { a : Component a, b : Component b }
         combined =
@@ -326,15 +300,14 @@ step2 f spec1 spec2 world =
 
         result : Acc2 a b
         result =
-            Ecs.Internal.indexedFoldlArray
-                (\n value acc ->
-                    Maybe.map2 (\a b -> f ( a, set1 n ) ( b, set2 n ) acc)
-                        value
+            Ecs.Internal.indexedFoldl
+                (\n a acc ->
+                    Maybe.map (\b -> f ( a, set1 n ) ( b, set2 n ) acc)
                         (Ecs.Component.get n acc.b)
                         |> Maybe.withDefault acc
                 )
                 combined
-                (compToArray combined.a)
+                (compToDict combined.a)
     in
     world
         |> applyIf (result.a /= combined.a) (spec1.set result.a)
@@ -364,29 +337,29 @@ step3 :
     -> System world
 step3 f spec1 spec2 spec3 world =
     let
-        set1 : EntityId -> a -> System (Acc3 a b c)
-        set1 (EntityId i) a acc =
+        set1 : Entity -> a -> System (Acc3 a b c)
+        set1 (Entity i) a acc =
             let
                 (Component comp) =
                     acc.a
             in
-            { acc | a = Component (Array.set i (Just a) comp) }
+            { acc | a = Component (Dict.insert i a comp) }
 
-        set2 : EntityId -> b -> System (Acc3 a b c)
-        set2 (EntityId i) b acc =
+        set2 : Entity -> b -> System (Acc3 a b c)
+        set2 (Entity i) b acc =
             let
                 (Component comp) =
                     acc.b
             in
-            { acc | b = Component (Array.set i (Just b) comp) }
+            { acc | b = Component (Dict.insert i b comp) }
 
-        set3 : EntityId -> c -> System (Acc3 a b c)
-        set3 (EntityId i) c acc =
+        set3 : Entity -> c -> System (Acc3 a b c)
+        set3 (Entity i) c acc =
             let
                 (Component comp) =
                     acc.c
             in
-            { acc | c = Component (Array.set i (Just c) comp) }
+            { acc | c = Component (Dict.insert i c comp) }
 
         combined : { a : Component a, b : Component b, c : Component c }
         combined =
@@ -397,17 +370,16 @@ step3 f spec1 spec2 spec3 world =
 
         result : Acc3 a b c
         result =
-            Ecs.Internal.indexedFoldlArray
-                (\n value acc ->
-                    Maybe.map3
-                        (\a b c -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) acc)
-                        value
+            Ecs.Internal.indexedFoldl
+                (\n a acc ->
+                    Maybe.map2
+                        (\b c -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) acc)
                         (Ecs.Component.get n acc.b)
                         (Ecs.Component.get n acc.c)
                         |> Maybe.withDefault acc
                 )
                 combined
-                (compToArray combined.a)
+                (compToDict combined.a)
     in
     world
         |> applyIf (result.a /= combined.a) (spec1.set result.a)
@@ -441,37 +413,37 @@ step4 :
     -> System world
 step4 f spec1 spec2 spec3 spec4 world =
     let
-        set1 : EntityId -> a -> System (Acc4 a b c d)
-        set1 (EntityId i) a acc =
+        set1 : Entity -> a -> System (Acc4 a b c d)
+        set1 (Entity i) a acc =
             let
                 (Component comp) =
                     acc.a
             in
-            { acc | a = Component (Array.set i (Just a) comp) }
+            { acc | a = Component (Dict.insert i a comp) }
 
-        set2 : EntityId -> b -> System (Acc4 a b c d)
-        set2 (EntityId i) b acc =
+        set2 : Entity -> b -> System (Acc4 a b c d)
+        set2 (Entity i) b acc =
             let
                 (Component comp) =
                     acc.b
             in
-            { acc | b = Component (Array.set i (Just b) comp) }
+            { acc | b = Component (Dict.insert i b comp) }
 
-        set3 : EntityId -> c -> System (Acc4 a b c d)
-        set3 (EntityId i) c acc =
+        set3 : Entity -> c -> System (Acc4 a b c d)
+        set3 (Entity i) c acc =
             let
                 (Component comp) =
                     acc.c
             in
-            { acc | c = Component (Array.set i (Just c) comp) }
+            { acc | c = Component (Dict.insert i c comp) }
 
-        set4 : EntityId -> d -> System (Acc4 a b c d)
-        set4 (EntityId i) d acc =
+        set4 : Entity -> d -> System (Acc4 a b c d)
+        set4 (Entity i) d acc =
             let
                 (Component comp) =
                     acc.d
             in
-            { acc | d = Component (Array.set i (Just d) comp) }
+            { acc | d = Component (Dict.insert i d comp) }
 
         combined : { a : Component a, b : Component b, c : Component c, d : Component d }
         combined =
@@ -483,18 +455,17 @@ step4 f spec1 spec2 spec3 spec4 world =
 
         result : Acc4 a b c d
         result =
-            Ecs.Internal.indexedFoldlArray
-                (\n value acc ->
-                    Maybe.map4
-                        (\a b c d -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) ( d, set4 n ) acc)
-                        value
+            Ecs.Internal.indexedFoldl
+                (\n a acc ->
+                    Maybe.map3
+                        (\b c d -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) ( d, set4 n ) acc)
                         (Ecs.Component.get n acc.b)
                         (Ecs.Component.get n acc.c)
                         (Ecs.Component.get n acc.d)
                         |> Maybe.withDefault acc
                 )
                 combined
-                (compToArray combined.a)
+                (compToDict combined.a)
     in
     world
         |> applyIf (result.a /= combined.a) (spec1.set result.a)
@@ -514,8 +485,8 @@ type alias Acc5 a b c d e =
     }
 
 
-compToArray : Component data -> Array (Maybe data)
-compToArray (Component data) =
+compToDict : Component data -> Dict ( Int, Int ) data
+compToDict (Component data) =
     data
 
 
@@ -537,45 +508,45 @@ step5 :
     -> System world
 step5 f spec1 spec2 spec3 spec4 spec5 world =
     let
-        set1 : EntityId -> a -> System (Acc5 a b c d e)
-        set1 (EntityId i) a acc =
+        set1 : Entity -> a -> System (Acc5 a b c d e)
+        set1 (Entity i) a acc =
             let
                 (Component comp) =
                     acc.a
             in
-            { acc | a = Component (Array.set i (Just a) comp) }
+            { acc | a = Component (Dict.insert i a comp) }
 
-        set2 : EntityId -> b -> System (Acc5 a b c d e)
-        set2 (EntityId i) b acc =
+        set2 : Entity -> b -> System (Acc5 a b c d e)
+        set2 (Entity i) b acc =
             let
                 (Component comp) =
                     acc.b
             in
-            { acc | b = Component (Array.set i (Just b) comp) }
+            { acc | b = Component (Dict.insert i b comp) }
 
-        set3 : EntityId -> c -> System (Acc5 a b c d e)
-        set3 (EntityId i) c acc =
+        set3 : Entity -> c -> System (Acc5 a b c d e)
+        set3 (Entity i) c acc =
             let
                 (Component comp) =
                     acc.c
             in
-            { acc | c = Component (Array.set i (Just c) comp) }
+            { acc | c = Component (Dict.insert i c comp) }
 
-        set4 : EntityId -> d -> System (Acc5 a b c d e)
-        set4 (EntityId i) d acc =
+        set4 : Entity -> d -> System (Acc5 a b c d e)
+        set4 (Entity i) d acc =
             let
                 (Component comp) =
                     acc.d
             in
-            { acc | d = Component (Array.set i (Just d) comp) }
+            { acc | d = Component (Dict.insert i d comp) }
 
-        set5 : EntityId -> e -> System (Acc5 a b c d e)
-        set5 (EntityId i) e acc =
+        set5 : Entity -> e -> System (Acc5 a b c d e)
+        set5 (Entity i) e acc =
             let
                 (Component comp) =
                     acc.e
             in
-            { acc | e = Component (Array.set i (Just e) comp) }
+            { acc | e = Component (Dict.insert i e comp) }
 
         combined : { a : Component a, b : Component b, c : Component c, d : Component d, e : Component e }
         combined =
@@ -588,11 +559,10 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
 
         result : Acc5 a b c d e
         result =
-            Ecs.Internal.indexedFoldlArray
-                (\n value acc ->
-                    Maybe.map5
-                        (\a b c d e -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) ( d, set4 n ) ( e, set5 n ) acc)
-                        value
+            Ecs.Internal.indexedFoldl
+                (\n a acc ->
+                    Maybe.map4
+                        (\b c d e -> f ( a, set1 n ) ( b, set2 n ) ( c, set3 n ) ( d, set4 n ) ( e, set5 n ) acc)
                         (Ecs.Component.get n acc.b)
                         (Ecs.Component.get n acc.c)
                         (Ecs.Component.get n acc.d)
@@ -600,7 +570,7 @@ step5 f spec1 spec2 spec3 spec4 spec5 world =
                         |> Maybe.withDefault acc
                 )
                 combined
-                (compToArray combined.a)
+                (compToDict combined.a)
     in
     world
         |> applyIf (result.a /= combined.a) (spec1.set result.a)

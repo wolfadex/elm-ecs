@@ -1,42 +1,41 @@
 module Ecs.Internal exposing
     ( Component(..)
     , Config(..)
-    , EntityId(..)
-    , indexedFoldlArray
+    , Entity(..)
+    , indexedFoldl
     , update
     )
 
-import Array exposing (Array)
-import Set exposing (Set)
+import Dict exposing (Dict)
 
 
-type EntityId
-    = EntityId Int
+type Entity
+    = Entity ( Int, Int )
 
 
 type Config
-    = Config ( Int, Set Int )
+    = Config ( Int, List Entity )
 
 
 type Component data
-    = Component (Array (Maybe data))
+    = Component (Dict ( Int, Int ) data)
 
 
-indexedFoldlArray : (EntityId -> a -> b -> b) -> b -> Array a -> b
-indexedFoldlArray func acc list =
+indexedFoldl : (Entity -> a -> b -> b) -> b -> Dict ( Int, Int ) a -> b
+indexedFoldl func acc entities =
     let
-        step : a -> ( EntityId, b ) -> ( EntityId, b )
-        step x ( (EntityId i) as id, thisAcc ) =
-            ( EntityId (i + 1), func id x thisAcc )
+        step : ( Int, Int ) -> a -> b -> b
+        step id a thisAcc =
+            func (Entity id) a thisAcc
     in
-    Tuple.second (Array.foldl step ( EntityId 0, acc ) list)
+    Dict.foldl step acc entities
 
 
-update : EntityId -> (a -> a) -> Array a -> Array a
-update (EntityId n) f a =
-    case Array.get n a of
+update : Entity -> (a -> a) -> Dict ( Int, Int ) a -> Dict ( Int, Int ) a
+update (Entity id) f entities =
+    case Dict.get id entities of
         Nothing ->
-            a
+            entities
 
-        Just element_ ->
-            Array.set n (f element_) a
+        Just data ->
+            Dict.insert id (f data) entities

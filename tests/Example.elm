@@ -57,7 +57,7 @@ suite =
                 worldWithEntity
                     |> .age
                     |> Ecs.Component.toDict
-                    |> Expect.equalDicts (Dict.singleton 0 0)
+                    |> Expect.equalDicts (Dict.singleton ( 0, 0 ) 0)
         , Test.test "system updates component" <|
             \() ->
                 let
@@ -76,5 +76,5 @@ suite =
                     |> ageSystem
                     |> .age
                     |> Ecs.Component.toDict
-                    |> Expect.equalDicts (Dict.singleton 0 2)
+                    |> Expect.equalDicts (Dict.singleton ( 0, 0 ) 2)
         ]

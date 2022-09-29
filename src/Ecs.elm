@@ -1,12 +1,12 @@
 module Ecs exposing
-    ( EntityId
+    ( Entity
     , Component
     , Config
     )
 
 {-|
 
-@docs EntityId
+@docs Entity
 @docs Component
 @docs Config
 
@@ -17,8 +17,8 @@ import Ecs.Internal
 
 {-| The ID of an entity.
 -}
-type alias EntityId =
-    Ecs.Internal.EntityId
+type alias Entity =
+    Ecs.Internal.Entity
 
 
 {-| The raw data for one aspect of an `Entity`. I.e. labels the Entity as possessing this particular aspect.

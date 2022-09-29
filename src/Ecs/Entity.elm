@@ -21,12 +21,11 @@ module Ecs.Entity exposing
 
 -}
 
-import Array
-import Ecs exposing (Component, EntityId)
+import Dict
+import Ecs exposing (Entity)
 import Ecs.Component
 import Ecs.Config
-import Ecs.Internal exposing (Component(..), Config(..), EntityId(..))
-import Set
+import Ecs.Internal exposing (Component(..), Config(..), Entity(..))
 
 
 {-| Creates a new
@@ -34,21 +33,21 @@ import Set
     Ecs.Entity.create ecsConfigSpec world
 
 -}
-create : Ecs.Config.Spec world -> world -> ( EntityId, world )
+create : Ecs.Config.Spec world -> world -> ( Entity, world )
 create config world =
     let
         (Config ( nextId, availableIds )) =
             config.get world
     in
-    case Set.toList availableIds of
+    case availableIds of
         [] ->
-            ( EntityId nextId
+            ( Entity ( nextId, 0 )
             , config.set (Config ( nextId + 1, availableIds )) world
             )
 
-        reuseableId :: _ ->
-            ( EntityId nextId
-            , config.set (Config ( reuseableId, Set.remove reuseableId availableIds )) world
+        reuseableId :: remainingIds ->
+            ( reuseableId
+            , config.set (Config ( nextId, remainingIds )) world
             )
 
 
@@ -65,15 +64,15 @@ It also can be used to remove some/select components from an entity.
         deleteEntity ( id, world )
 
 -}
-remove : Ecs.Component.Spec comp world -> ( EntityId, world ) -> ( EntityId, world )
-remove spec ( (EntityId entityId) as id, world ) =
-    ( id
+remove : Ecs.Component.Spec comp world -> ( Entity, world ) -> ( Entity, world )
+remove spec ( Entity id, world ) =
+    ( Entity id
     , spec.set
         (let
             (Component comp) =
                 spec.get world
          in
-         Component (Array.set entityId Nothing comp)
+         Component (Dict.remove id comp)
         )
         world
     )
@@ -81,15 +80,15 @@ remove spec ( (EntityId entityId) as id, world ) =
 
 {-| Finalizes the deletion of an Entity from the world. This should be used after `remove`.
 -}
-delete : Ecs.Config.Spec world -> ( EntityId, world ) -> ( EntityId, world )
-delete config ( (EntityId entityId) as id, world ) =
-    ( id
+delete : Ecs.Config.Spec world -> ( Entity, world ) -> ( Entity, world )
+delete config ( Entity id, world ) =
+    ( Entity id
     , config.set
         (let
             (Config ( nextId, availableIds )) =
                 config.get world
          in
-         Config ( nextId, Set.insert entityId availableIds )
+         Config ( nextId, Entity id :: availableIds )
         )
         world
     )
@@ -102,12 +101,12 @@ delete config ( (EntityId entityId) as id, world ) =
         |> Ecs.Entity.with ( velocitySpec, velocityComponent )
 
 -}
-with : ( Ecs.Component.Spec comp world, comp ) -> ( EntityId, world ) -> ( EntityId, world )
-with ( spec, component ) ( entityID, world ) =
+with : ( Ecs.Component.Spec comp world, comp ) -> ( Entity, world ) -> ( Entity, world )
+with ( spec, component ) ( id, world ) =
     let
         updatedComponents : Component comp
         updatedComponents =
-            Ecs.Component.set entityID
+            Ecs.Component.set id
                 component
                 (spec.get world)
 
@@ -115,4 +114,4 @@ with ( spec, component ) ( entityID, world ) =
         updatedWorld =
             spec.set updatedComponents world
     in
-    ( entityID, updatedWorld )
+    ( id, updatedWorld )
