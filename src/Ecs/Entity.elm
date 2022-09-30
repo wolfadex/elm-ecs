@@ -58,6 +58,7 @@ It also can be used to remove some/select components from an entity.
     deleteEntity =
         Ecs.Entity.remove positionSpec
             >> Ecs.Entity.remove velocitySpec
+            >> Ecs.Entity.delete ecsConfigSpec
 
     newWorld : World
     newWorld =
