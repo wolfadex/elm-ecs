@@ -45,8 +45,8 @@ create config world =
             , config.set (Config ( nextId + 1, availableIds )) world
             )
 
-        reuseableId :: remainingIds ->
-            ( reuseableId
+        (Entity ( id, version )) :: remainingIds ->
+            ( Entity ( id, version + 1 )
             , config.set (Config ( nextId, remainingIds )) world
             )
 
