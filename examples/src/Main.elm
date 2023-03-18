@@ -2,13 +2,13 @@ module Main exposing (main)
 
 import Browser
 import Browser.Events
-import Html exposing (..)
-import Html.Attributes exposing (style)
 import Ecs
 import Ecs.Component
-import Ecs.Entity
 import Ecs.Config
-import Ecs.System as System exposing (System, applyIf)
+import Ecs.Entity
+import Ecs.System exposing (System, applyIf)
+import Html exposing (..)
+import Html.Attributes exposing (style)
 
 
 main : Program () World Float
@@ -19,7 +19,7 @@ main =
         , subscriptions = \_ -> Browser.Events.onAnimationFrameDelta identity
         , view =
             \w ->
-                System.foldl
+                Ecs.System.foldl
                     (\( px, py ) acc ->
                         div
                             [ style "width" "30px"
@@ -41,7 +41,7 @@ main =
 
 system : Ecs.Component.Spec ( Int, Int ) World -> Ecs.Component.Spec ( Int, Int ) World -> System World
 system spec1 spec2 w =
-    System.step2
+    Ecs.System.map2
         (\( ( vx, vy ), setVel ) ( ( px, py ), setPos ) acc ->
             let
                 x =
