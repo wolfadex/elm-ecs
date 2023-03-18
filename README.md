@@ -145,3 +145,12 @@ view world =
 
 
 ```
+
+Notes:
+
+This started as a fork of [justgook/elm-game-logic](https://package.elm-lang.org/packages/justgook/elm-game-logic/latest/), credit goes to them for the initial design. Notable changes:
+
+- Uses `Dict` instead of `Array` internally
+- `Entity`s (the ID) is a pair of ID and version to support reusing IDs
+- `stepN` was renamed to `mapN`
+- `Entity` creation is managed for you
