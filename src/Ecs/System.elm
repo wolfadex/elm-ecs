@@ -185,20 +185,22 @@ indexedFoldl4 f comp1 comp2 comp3 comp4 acc_ =
 {-| Same as [`foldl2`](#foldl2) only with 5 components
 -}
 foldl5 :
-    (comp1 -> comp2 -> comp3 -> comp4 -> acc -> acc)
+    (comp1 -> comp2 -> comp3 -> comp4 -> comp5 -> acc -> acc)
     -> Ecs.Component comp1
     -> Ecs.Component comp2
     -> Ecs.Component comp3
     -> Ecs.Component comp4
+    -> Ecs.Component comp5
     -> acc
     -> acc
-foldl5 f comp1 comp2 comp3 comp4 acc_ =
+foldl5 f comp1 comp2 comp3 comp4 comp5 acc_ =
     indexedFoldl
         (\n a acc ->
-            Maybe.map3 (\b c d -> f a b c d acc)
+            Maybe.map4 (\b c d e -> f a b c d e acc)
                 (Ecs.Component.get n comp2)
                 (Ecs.Component.get n comp3)
                 (Ecs.Component.get n comp4)
+                (Ecs.Component.get n comp5)
                 |> Maybe.withDefault acc
         )
         comp1
